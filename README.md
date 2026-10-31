@@ -27,7 +27,7 @@ Foydalanuvchi **mikrofonda turkcha gapiradi** → Aylin Hoca (AI) eshitadi → n
 ```
 
 - STT: brauzerning **Web Speech SpeechRecognition** API (lang `tr-TR`, bu Chrome va Edge'da ishlaydi). Ishlamasa — qo'lda matn kiriting.
-- TTS: Python `edge-tts` → `tr-TR-EmelNeural` (bepul, natural). Ovoz qat'iy Emel; tezlik **1.0** (`+0%`), balandlik **1.0** (`+0Hz`). Hech qanday API kalit yoki to'lov kerak emas.
+- TTS: Python `edge-tts` → `tr-TR-EmelNeural` (bepul, natural). Ovoz qat'iy Emel; tezlik **0.8x / 1.0x / 1.2x** (UI’dan sozlanadi), balandlik **1.0** (`+0Hz`). Hech qanday API kalit yoki to'lov kerak emas.
 - AI tahlil: Google **Gemini** (`gemini-1.5-flash`) qat'iy JSON-sxemasi bilan instruksiyasi — [backend/app/services/instruction.py](backend/app/services/instruction.py). Zaxira variant: OpenAI-mos kalit (`OPENAI_API_KEY`).
 - Kalitlama frontend yoki brauzerga YUKLANMAYDI — ular faqat backenddagi `.env` faylida.
 
@@ -84,7 +84,7 @@ Asosiy sahifadagi chap yuqoridagi "Jonli Qo'ng'iroq" tugmasi orqali ochiladi:
 - Har javobda xato kartochkalari: ❌ xato, 💡 o'zbekcha qoida, ✅ to'g'risi.
 - "Qo'ng'iroqni tugatish" barcha resurslarni tozlaydi.
 
-Texnik: sukunat analizi `AnalyserNode` RMS (chegara 8/255) bilan; TTS ijro paytida mic bloklanadi (echo oldini olish uchun). TTS parametrlari backendda qat'iy: `rate=+0%` (1.0), `pitch=+0Hz` (1.0) — tashqaridan o'zgartirib bo'lmaydi. Brauzer `speechSynthesis` umuman ishlatilmaydi.
+Texnik: sukunat analizi `AnalyserNode` RMS (chegara 8/255) bilan; TTS ijro paytida mic bloklanadi (echo oldini olish uchun). TTS: ovoz va balandlik qat'iy (`tr-TR-EmelNeural`, `+0Hz`); tezlik `speed=0.8|1.0|1.2` parametri bilan boshqariladi. Brauzer `speechSynthesis` umuman ishlatilmaydi.
 
 ## 📡 API endpoints
 
@@ -147,6 +147,14 @@ Swagger: <http://localhost:8000/docs>
         ├── main.jsx · index.css
         ├── lib/ api.js, useRecorder.js   # STT + timer + analyser
         └── components/ Header, QuestionCard, RecorderBar, Waveform, ResultPanel
+
+## 🆕 3.0 — Jonli vizual, tarjima, tezlik va streak
+
+- **🎧 Jonli ovoz to‘lqini**: Aylin gapirganda mayin sintetik to‘lqin, foydalanuvchi gapirganda mikrofon kuchiga qarab balandlik va rang o‘zgaradi (indigo → amber → rose).
+- **🇺🇿 O‘zbekcha ma’nosi**: Aylin savolini bir tugma bilan o‘zbekchaga tarjima qilib ko‘rish.
+- **💡 Maslahat olish**: javob bera olmasangiz, 2–3 ta namunaviy turkcha javob (o‘zbekcha tarjimasi va 🔊 tinglash bilan).
+- **🐢 Ovoz tezligi**: 0.8x (sekin), 1.0x (normal), 1.2x (tez) — qo‘ng‘iroq va simulyatorda, tanlov `localStorage`da saqlanadi.
+- **🔥 Streak va kunlik maqsad**: kuniga 5 daqiqa gapirish maqsadi, progress bar, streak header va bosh sahifada; barchasi `localStorage`da (`tp-streak-v1`), server talab qilinmaydi.
 
 ## 🆕 2.0 — Hisobot, stsenariylar va lug'at
 

@@ -43,7 +43,7 @@ export default function RecorderBar({
               {recording ? "Yozib olinmoqda…" : supported ? "Mikrofon tayyor" : "Brauzer ovozni tanimaydi — matn kiriting"}
             </span>
           </div>
-          <Waveform getAnalyser={getAnalyser} active={recording} />
+          <Waveform getAnalyser={getAnalyser} active={recording} mode={recording ? "listening" : "idle"} />
           {recording && interim && (
             <p className="italic text-sm text-indigo-500 dark:text-indigo-300">{interim}…</p>
           )}

@@ -4,7 +4,7 @@ const TABS = [
   { id: "vocab", icon: "📚", label: "Lug'atim" },
 ];
 
-export default function Header({ view, onView, mode, setMode, dark, toggleDark, vocabCount = 0 }) {
+export default function Header({ view, onView, mode, setMode, dark, toggleDark, vocabCount = 0, streakCount = 0 }) {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
       <div className="mx-auto max-w-5xl px-3 sm:px-4">
@@ -22,6 +22,16 @@ export default function Header({ view, onView, mode, setMode, dark, toggleDark, 
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
+            <span
+              title="Kunlik streak"
+              className={`rounded-full px-2.5 py-1 text-[10px] font-black ${
+                streakCount > 0
+                  ? "bg-gradient-to-r from-amber-100 to-orange-100 text-orange-600 dark:from-amber-950/60 dark:to-orange-950/50 dark:text-amber-300"
+                  : "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
+              }`}
+            >
+              🔥 {streakCount}
+            </span>
             <span className="hidden rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 sm:inline">
               100% bepul
             </span>

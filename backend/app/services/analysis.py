@@ -25,6 +25,8 @@ RESULT_KEYS = [
     "next_question_tr",
     "positive_note_uz",
     "useful_phrases",
+    "next_question_uz",
+    "answer_hints",
 ]
 
 # Gemini uchun qat'iy JSON sxemasi
@@ -48,7 +50,16 @@ GEMINI_RESPONSE_SCHEMA = {
         },
         "model_answer_tr": {"type": "STRING"},
         "next_question_tr": {"type": "STRING"},
+        "next_question_uz": {"type": "STRING", "description": "next_question_tr ning o'zbekcha tarjimasi"},
         "positive_note_uz": {"type": "STRING"},
+        "answer_hints": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {"tr": {"type": "STRING"}, "uz": {"type": "STRING"}},
+                "required": ["tr", "uz"],
+            },
+        },
         "useful_phrases": {
             "type": "ARRAY",
             "items": {
@@ -82,6 +93,8 @@ def _user_prompt(transcription: str, question_tr: str, question_uz: str, mode: s
         "Vazifa: yuqoridagi instruksiya bo'yicha to'liq tahlil qil va FAQAT JSON qaytar."
         " next_question_tr — savolga ulangan va stsenariyga mos yangi tabiiy ochiq savol bo'lsin."
         " useful_phrases — shu javobda ishlatilishi mumkin bo'lgan 1-3 ta foydali turkcha ibora (o'zbekcha tarjimasi bilan)."
+        " next_question_uz — next_question_tr ning tabiiy o'zbekcha tarjimasi."
+        " answer_hints — foydalanuvchi javob bera olmay qolsa ishlatadigan 2-3 ta qisqa namunaviy turkcha javob (tr + uz)."
     )
 
 
@@ -161,7 +174,13 @@ def _normalize(result: dict, transcription: str) -> dict:
     out["level_score"] = out.get("level_score") or "A1+"
     out["model_answer_tr"] = out.get("model_answer_tr") or ""
     out["next_question_tr"] = out.get("next_question_tr") or ""
+    out["next_question_uz"] = out.get("next_question_uz") or ""
     out["positive_note_uz"] = out.get("positive_note_uz") or ""
+    out["answer_hints"] = [
+        {"tr": str(h.get("tr", ""))[:300], "uz": str(h.get("uz", ""))[:300]}
+        for h in (out.get("answer_hints") or [])
+        if h.get("tr")
+    ][:3]
     out["useful_phrases"] = [
         {"tr": str(p.get("tr", ""))[:300], "uz": str(p.get("uz", ""))[:300]}
         for p in (out.get("useful_phrases") or [])

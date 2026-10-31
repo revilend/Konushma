@@ -84,14 +84,52 @@ SCENARIOS: list[dict] = [
 ]
 
 
+HINTS: dict[str, list[dict]] = {
+    "cafe": [
+        {"tr": "Bir kahve alabilir miyim?", "uz": "Bir kofe olsam bo'ladimi?"},
+        {"tr": "Menüyü görebilir miyim?", "uz": "Menyuni ko'rsam bo'ladimi?"},
+        {"tr": "Sütlü ve şekersiz olsun, lütfen.", "uz": "Sutli va shakarsiz bo'lsin, iltimos."},
+    ],
+    "bazaar": [
+        {"tr": "Bu ne kadar?", "uz": "Bu qancha turadi?"},
+        {"tr": "Biraz indirim yapabilir misiniz?", "uz": "Biroz chegirma qila olasizmi?"},
+        {"tr": "Bunu almak istiyorum.", "uz": "Buni olmoqchiman."},
+    ],
+    "airport": [
+        {"tr": "Turist olarak geliyorum.", "uz": "Turist sifatida kelyapman."},
+        {"tr": "Bir hafta kalacağım.", "uz": "Bir hafta qolaman."},
+        {"tr": "Otel rezervasyonum var.", "uz": "Mehmonxona rezervatsiyam bor."},
+    ],
+    "tomer": [
+        {"tr": "Bence bu konunun iki yönü var.", "uz": "Menimcha, bu masalaning ikki tomoni bor."},
+        {"tr": "Örneğin, kendi deneyimimden yola çıkarsam...", "uz": "Masalan, o'z tajribamdan kelib chiqsam..."},
+        {"tr": "Bu görüşe kısmen katılıyorum.", "uz": "Bu fikrga qisman qo'shilaman."},
+    ],
+    "free": [
+        {"tr": "Bugün kendimi çok iyi hissediyorum.", "uz": "Bugun o'zimni juda yaxshi his qilyapman."},
+        {"tr": "Senin günün nasıl geçti?", "uz": "Sening kuning qanday o'tdi?"},
+        {"tr": "Bu konuda ne düşünüyorsun?", "uz": "Bu haqda nima o'ylaysan?"},
+    ],
+}
+
+
 def list_scenarios() -> list[dict]:
-    return [{k: v for k, v in s.items() if k not in ("context", "phrases")} for s in SCENARIOS]
+    return [
+        {
+            **{k: v for k, v in s.items() if k not in ("context", "phrases")},
+            "hints": HINTS.get(s["id"], []),
+        }
+        for s in SCENARIOS
+    ]
 
 
 def get_scenario(scenario_id: str | None) -> dict | None:
     if not scenario_id:
         return None
-    return next((s for s in SCENARIOS if s["id"] == scenario_id), None)
+    sc = next((s for s in SCENARIOS if s["id"] == scenario_id), None)
+    if not sc:
+        return None
+    return {**sc, "hints": HINTS.get(sc["id"], [])}
 
 
 def local_phrases(scenario_id: str | None) -> list[dict]:

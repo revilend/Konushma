@@ -122,13 +122,17 @@ async def report_route(req: ReportRequest):
 
 
 @app.get("/api/tts")
-async def tts_route(text: str = Query(min_length=1, max_length=600)):
+async def tts_route(
+    text: str = Query(min_length=1, max_length=600),
+    speed: float = Query(default=1.0, ge=0.5, le=1.5),
+):
     """Matnni Microsoft Emel Neural (tr-TR) ovozi bilan mp3 qilib qaytaradi.
 
-    Ovoz qat'iy `tr-TR-EmelNeural`; tezlik 1.0, balandlik 1.0. Bepul, kalitsiz.
+    Ovoz qat'iy `tr-TR-EmelNeural`; balandlik 1.0. Tezlik 0.5–1.5 (UI: 0.8/1.0/1.2).
+    Bepul, kalitsiz.
     """
     try:
-        audio = await synth(text)
+        audio = await synth(text, speed)
     except Exception as exc:
         logging.exception("TTS xatosi")
         raise HTTPException(status_code=502, detail=f"Ovoz yaratish xato qildi: {exc}")

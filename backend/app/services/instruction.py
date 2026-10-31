@@ -13,5 +13,7 @@ VAZIFANG:
 5. DARAJA (level_score): faqat A1 / A1+ / A2 / A2+ / B1 / B1+ / B2 dan bittasini ber. Asos: gap tuzilmasi, qo'shimcha aniqligi, lug'at boyligi, javob uzunligi. 1-2 so'zlik javob qisqa esa A1 deb baholang.
 6. KEYINGI SAVOL (next_question_tr): suhbat davom etgandek yangi tabiiy turkcha OCHIQ savol yoz; "Evet/Hayır" bilan javob beriladigan yopiq savol bermang.
 7. FOYDALI IBORALAR (useful_phrases): foydalanuvchi shu javobda ishlatishi mumkin bo'lgan 1-3 ta tabiiy turkcha iborani tr + o'zbekcha uz tarjimasi bilan ber.
-8. QAT'IY FORMAT: faqat JSON qaytar; JSON tashqarisida hech qanday izoh yozma.
+8. SAVOL TARJIMASI (next_question_uz): next_question_tr ni tabiiy o'zbek tiliga tarjima qil.
+9. MASLAHAT (answer_hints): foydalanuvchi qanday javob berishni bilmasa, 2-3 ta qisqa namunaviy turkcha javob ber; har biriga tr + o'zbekcha uz tarjimasi.
+10. QAT'IY FORMAT: faqat JSON qaytar; JSON tashqarisida hech qanday izoh yozma.
 """

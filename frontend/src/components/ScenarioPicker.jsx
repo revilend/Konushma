@@ -1,3 +1,5 @@
+import SpeedControl from "./SpeedControl";
+
 export default function ScenarioPicker({
   scenarios,
   selected,
@@ -7,6 +9,8 @@ export default function ScenarioPicker({
   loading,
   starting,
   error,
+  speed = 1,
+  setSpeed,
 }) {
   return (
     <div className="space-y-5">
@@ -92,6 +96,14 @@ export default function ScenarioPicker({
           })}
         </div>
       )}
+
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white/80 p-3 dark:border-slate-800 dark:bg-slate-900/80">
+        <div>
+          <p className="text-xs font-extrabold text-slate-700 dark:text-slate-200">🐢 Aylin Hocaning tezligi</p>
+          <p className="text-[10px] text-slate-400">Yangi boshlovchilar uchun 0.8x tavsiya etiladi</p>
+        </div>
+        <SpeedControl value={speed} onChange={setSpeed} />
+      </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <button

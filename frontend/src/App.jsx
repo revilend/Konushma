@@ -5,9 +5,14 @@ import RecorderBar from "./components/RecorderBar";
 import ResultPanel from "./components/ResultPanel";
 import CallScreen from "./components/CallScreen";
 import VocabularyPage from "./components/VocabularyPage";
+import StreakCard from "./components/StreakCard";
+import SpeedControl from "./components/SpeedControl";
 import { useRecorder } from "./lib/useRecorder";
 import { useVocabulary } from "./lib/useVocabulary";
+import { useStreak } from "./lib/useStreak";
 import { api } from "./lib/api";
+
+const SPEEDS = [0.8, 1.0, 1.2];
 
 export default function App() {
   const [view, setView] = useState("sim"); // sim | call | vocab
@@ -21,10 +26,22 @@ export default function App() {
   const [speaking, setSpeaking] = useState(false);
   const [manualText, setManualText] = useState("");
   const [showManual, setShowManual] = useState(false);
+  const [speed, setSpeed] = useState(() => {
+    const saved = Number(localStorage.getItem("tp-speed"));
+    return SPEEDS.includes(saved) ? saved : 1.0;
+  });
 
   const rec = useRecorder("tr-TR");
   const audioRef = useRef(null);
   const vocab = useVocabulary();
+  const streak = useStreak();
+  const { addSeconds } = streak;
+  const speedRef = useRef(speed);
+
+  useEffect(() => {
+    speedRef.current = speed;
+    localStorage.setItem("tp-speed", String(speed));
+  }, [speed]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -54,7 +71,7 @@ export default function App() {
   const playTTS = useCallback((text) => {
     if (!text) return Promise.resolve();
     audioRef.current?.pause();
-    const a = new Audio(api.ttsUrl(text));
+    const a = new Audio(api.ttsUrl(text, speedRef.current));
     audioRef.current = a;
     setSpeaking(true);
     const finish = () => setSpeaking(false);
@@ -83,12 +100,15 @@ export default function App() {
   const submit = useCallback(
     async (manualOverride) => {
       setError("");
+      const wasRecording = rec.recording;
+      const elapsed = wasRecording ? rec.seconds : 0;
       let text = manualOverride !== undefined ? manualOverride : await rec.stop();
       if (!text) text = manualText.trim();
       if (!text) {
         setError("Javob topilmadi — mikrofon bilan gapir yoki matn yozib yubor.");
         return;
       }
+      if (elapsed > 0) addSeconds(elapsed);
       setManualText("");
       setShowManual(false);
       setPhase("analyzing");
@@ -102,7 +122,7 @@ export default function App() {
         setError(`Tahlil qilinmadi: ${e.message}`);
       }
     },
-    [rec, manualText, question, mode, playTTS]
+    [rec, manualText, question, mode, playTTS, addSeconds]
   );
 
   const next = useCallback(async () => {
@@ -141,9 +161,12 @@ export default function App() {
         dark={dark}
         toggleDark={() => setDark(!dark)}
         vocabCount={vocab.count}
+        streakCount={streak.streak}
       />
 
       <main className="relative mx-auto max-w-3xl space-y-5 px-3 py-5 pb-24 sm:px-4">
+        {view !== "vocab" && <StreakCard streak={streak} />}
+
         {cfg?.setup_needed && view === "sim" && (
           <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
             ⚙️ <b>AI kalit sozlanmagan.</b> Backend fayli{" "}
@@ -165,11 +188,21 @@ export default function App() {
             playTTS={playTTS}
             stopTTS={stopTTS}
             vocab={vocab}
+            speed={speed}
+            setSpeed={setSpeed}
+            onSessionSeconds={addSeconds}
           />
         )}
 
         {view === "sim" && (
           <>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                Aylin Hocaning ovoz tezligi
+              </p>
+              <SpeedControl value={speed} onChange={setSpeed} />
+            </div>
+
             {error && (
               <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
                 ⚠️ {error}

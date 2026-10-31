@@ -40,7 +40,8 @@ export const api = {
       body: JSON.stringify(payload),
     }).then(handle),
 
-  // Matnli javobni mp3 ovozga aylantiradi — faqat Microsoft Emel Neural (tr-TR),
-  // tezlik 1.0 / balandlik 1.0. Bepul xizmat, API kalit talab qilmaydi.
-  ttsUrl: (text) => `${BASE}/api/tts?${new URLSearchParams({ text }).toString()}`,
+  // Matnli javobni mp3 ovozga aylantiradi — faqat Microsoft Emel Neural (tr-TR).
+  // speed: 0.8 | 1.0 | 1.2 (balandlik doim 1.0). Bepul xizmat, API kalit talab qilmaydi.
+  ttsUrl: (text, speed = 1) =>
+    `${BASE}/api/tts?${new URLSearchParams({ text, speed: String(speed) }).toString()}`,
 };
