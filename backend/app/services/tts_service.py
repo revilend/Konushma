@@ -1,17 +1,21 @@
-"""edge-tts orqali natural ovoz chiqarish (tr-TR-EmelNeural)."""
+"""Microsoft Emel Neural (tr-TR-EmelNeural) — bepul, tabiiy turkcha ovoz.
+
+Ovoz, tezlik (1.0) va balandlik (1.0) qat'iy belgilangan; tashqi parametr bilan
+almashtirib bo'lmaydi. edge-tts Microsoftning bepul ovozi — API kalit talab qilmaydi.
+"""
 import edge_tts
 
-from ..config import TTS_VOICE
+from ..config import TTS_PITCH, TTS_RATE, TTS_VOICE
 
 MAX_CHARS = 600
 
 
-async def synth(text: str, voice: str | None = None, rate: str = "+0%", pitch: str = "+0Hz") -> bytes:
+async def synth(text: str) -> bytes:
     """Matnni mp3 ga aylandira (bytes qaytadi)."""
     clean = " ".join(text.strip().split())[:MAX_CHARS]
     if not clean:
         return b""
-    communicate = edge_tts.Communicate(clean, voice or TTS_VOICE, rate=rate, pitch=pitch)
+    communicate = edge_tts.Communicate(clean, TTS_VOICE, rate=TTS_RATE, pitch=TTS_PITCH)
     chunks: list[bytes] = []
     async for chunk in communicate.stream():
         if chunk["type"] == "audio":

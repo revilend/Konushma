@@ -1,0 +1,6 @@
+# Vercel Python runtime dependencies (backend/app is imported by index.py)
+fastapi>=0.115
+edge-tts>=6.1.12
+httpx>=0.27
+pydantic>=2.7
+python-dotenv>=1.0

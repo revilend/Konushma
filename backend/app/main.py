@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
-from .config import TTS_VOICE, ai_provider
+from .config import TTS_PITCH, TTS_RATE, TTS_VOICE, ai_provider
 from .services.analysis import analyze
 from .services.questions import random_question
 from .services.tts_service import synth
@@ -52,6 +52,9 @@ async def config():
     return {
         "ai_provider": provider,
         "tts_voice": TTS_VOICE,
+        "tts_rate": TTS_RATE,
+        "tts_pitch": TTS_PITCH,
+        "tts_free": True,
         "setup_needed": provider == "none",
     }
 
@@ -80,14 +83,13 @@ async def analyze_route(req: AnalyzeRequest):
 
 
 @app.get("/api/tts")
-async def tts_route(
-        text: str = Query(min_length=1, max_length=600),
-        voice: str | None = None,
-        rate: str = Query(default="+0%"),
-        pitch: str = Query(default="+0Hz"),
-):
+async def tts_route(text: str = Query(min_length=1, max_length=600)):
+    """Matnni Microsoft Emel Neural (tr-TR) ovozi bilan mp3 qilib qaytaradi.
+
+    Ovoz qat'iy `tr-TR-EmelNeural`; tezlik 1.0, balandlik 1.0. Bepul, kalitsiz.
+    """
     try:
-        audio = await synth(text, voice, rate, pitch)
+        audio = await synth(text)
     except Exception as exc:
         logging.exception("TTS xatosi")
         raise HTTPException(status_code=502, detail=f"Ovoz yaratish xato qildi: {exc}")

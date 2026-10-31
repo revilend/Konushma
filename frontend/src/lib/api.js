@@ -30,9 +30,7 @@ export const api = {
       }),
     }).then(handle),
 
-  // Matnlik javobni mp3 ogziga aylantiring (Audio elementiga URL sifatida)
-  ttsUrl: (text, voice) => {
-    const params = new URLSearchParams({ text, ...(voice ? { voice } : {}) });
-    return `${BASE}/api/tts?${params.toString()}`;
-  },
+  // Matnli javobni mp3 ovozga aylantiradi — faqat Microsoft Emel Neural (tr-TR),
+  // tezlik 1.0 / balandlik 1.0. Bepul xizmat, API kalit talab qilmaydi.
+  ttsUrl: (text) => `${BASE}/api/tts?${new URLSearchParams({ text }).toString()}`,
 };

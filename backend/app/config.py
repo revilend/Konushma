@@ -12,8 +12,11 @@ OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
 GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash").strip()
 
-# edge-tts ovozi
-TTS_VOICE: str = os.getenv("TTS_VOICE", "tr-TR-EmelNeural").strip()
+# edge-tts ovozi — Microsoft Emel Neural (tr-TR), 100% bepul, API kalit kerak emas.
+# Bu qiymatlar .env orqali o'zgartirilmaydi: ovoz doim Emel, tezlik/balandlik 1.0.
+TTS_VOICE: str = "tr-TR-EmelNeural"
+TTS_RATE: str = "+0%"   # 1.0 tezlik (tabiiy)
+TTS_PITCH: str = "+0Hz"  # 1.0 balandlik (tabiiy)
 
 
 def ai_provider() -> str:

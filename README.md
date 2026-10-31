@@ -22,12 +22,12 @@ Foydalanuvchi **mikrofonda turkcha gapiradi** → Aylin Hoca (AI) eshitadi → n
    ├─ /api/analyze   → Gemini (asosiy) yoki OpenAI mos API (zaxira)
    │                    qat'iy JSON: transcription + level_score + mistakes +
    │                    model_answer_tr + next_question_tr + positive_note_uz
-   ├─ /api/tts       → edge-tts · tr-TR-EmelNeural (natural turkcha ayol ovoz)
+   ├─ /api/tts       → Microsoft Emel Neural · tr-TR (100% bepul, tabiiy ayol ovoz)
    └─ /api/config    → AI kaliti sozlanganmi (setup tekshiruvi)
 ```
 
 - STT: brauzerning **Web Speech SpeechRecognition** API (lang `tr-TR`, bu Chrome va Edge'da ishlaydi). Ishlamasa — qo'lda matn kiriting.
-- TTS: Python `edge-tts` → `tr-TR-EmelNeural` (bepul, natural).
+- TTS: Python `edge-tts` → `tr-TR-EmelNeural` (bepul, natural). Ovoz qat'iy Emel; tezlik **1.0** (`+0%`), balandlik **1.0** (`+0Hz`). Hech qanday API kalit yoki to'lov kerak emas.
 - AI tahlil: Google **Gemini** (`gemini-1.5-flash`) qat'iy JSON-sxemasi bilan instruksiyasi — [backend/app/services/instruction.py](backend/app/services/instruction.py). Zaxira variant: OpenAI-mos kalit (`OPENAI_API_KEY`).
 - Kalitlama frontend yoki brauzerga YUKLANMAYDI — ular faqat backenddagi `.env` faylida.
 
@@ -84,7 +84,7 @@ Asosiy sahifadagi chap yuqoridagi "Jonli Qo'ng'iroq" tugmasi orqali ochiladi:
 - Har javobda xato kartochkalari: ❌ xato, 💡 o'zbekcha qoida, ✅ to'g'risi.
 - "Qo'ng'iroqni tugatish" barcha resurslarni tozlaydi.
 
-Texnik: sukunat analizi `AnalyserNode` RMS (chegara 8/255) bilan; TTS ijro paytida mic bloklanadi (echo oldini olish uchun). TTS parametrlari: `rate=+0%`, `pitch=+0Hz` (tabiiy, mayin).
+Texnik: sukunat analizi `AnalyserNode` RMS (chegara 8/255) bilan; TTS ijro paytida mic bloklanadi (echo oldini olish uchun). TTS parametrlari backendda qat'iy: `rate=+0%` (1.0), `pitch=+0Hz` (1.0) — tashqaridan o'zgartirib bo'lmaydi. Brauzer `speechSynthesis` umuman ishlatilmaydi.
 
 ## 📡 API endpoints
 
@@ -147,3 +147,32 @@ Swagger: <http://localhost:8000/docs>
         ├── main.jsx · index.css
         ├── lib/ api.js, useRecorder.js   # STT + timer + analyser
         └── components/ Header, QuestionCard, RecorderBar, Waveform, ResultPanel
+
+## 🚀 Vercel'ga deploy (bepul)
+
+Loyiha bitta Vercel loyihasida ishlaydi: React statik fayllar CDN'dan, `/api/*` esa
+FastAPI serverless funksiyasidan beriladi. Alohida backend URL yoki `VITE_API_URL` kerak emas.
+
+1. [vercel.com/new](https://vercel.com/new) → GitHub repo (`revilend/Konushma`) ni import qiling.
+2. Framework avtomatik aniqlanadi (FastAPI + `index.py`); sozlamalarni o'zgartirmang.
+3. **Environment Variables** bo'limida qo'shing:
+   - `GEMINI_API_KEY` (tavsiya) yoki `OPENAI_API_KEY`
+   - `OPENAI_BASE_URL` / `OPENAI_MODEL` — faqat OpenAI-mos variant uchun
+4. **Deploy** bosing.
+
+Deploy fayllari:
+
+| Fayl | Vazifasi |
+|------|----------|
+| `index.py` | Vercel entrypoint — `backend/app` dagi FastAPI `app` ni import qiladi |
+| `requirements.txt` | Python bog'liqliklar (Vercel Python runtime o'rnatadi) |
+| `vercel.json` | Frontend build (`frontend/dist` → `public/`) va funksiya (`maxDuration: 60`) |
+| `.vercelignore` | `.venv`, `node_modules`, `.env` va boshqa keraksiz fayllarni yuklamaydi |
+
+Eslatmalar:
+
+- TTS (`edge-tts` → `tr-TR-EmelNeural`) Vercel'da ham bepul ishlaydi; API kalit talab qilmaydi.
+- Birinchi so'rov "cold start" tufayli 1–3 soniya sekinroq bo'lishi mumkin.
+- Hobby tarifi shaxsiy/demo loyihalar uchun; homiy reklama bilan tijoriy foydalanish uchun Pro kerak.
+- Agar Microsoft tomonidan `edge-tts` WebSocket'i bloklansa, backendni Render'ga ko'chirish mumkin —
+  frontend Vercel'da qoladi, faqat `VITE_API_URL` ni Render manziliga o'zgartirib qayta build qilinadi.
