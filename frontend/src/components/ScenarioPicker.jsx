@@ -1,3 +1,4 @@
+import GlowingOrb from "./GlowingOrb";
 import SpeedControl from "./SpeedControl";
 
 export default function ScenarioPicker({
@@ -14,29 +15,43 @@ export default function ScenarioPicker({
 }) {
   return (
     <div className="space-y-5">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500 via-fuchsia-600 to-indigo-600 p-6 text-white shadow-2xl shadow-fuchsia-500/25 sm:p-8">
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-16 -left-10 h-44 w-44 rounded-full bg-indigo-300/20 blur-2xl" />
-        <span className="relative inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wide backdrop-blur">
-          📞 Hands-free qo&apos;ng&apos;iroq
-        </span>
-        <h2 className="relative mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">
-          Aylin Hoca bilan jonli suhbat
-        </h2>
-        <p className="relative mt-2 max-w-xl text-sm text-white/90">
-          Mavzuni tanlang — Aylin Hoca shu vaziyatga mos rol o&apos;ynaydi. Mikrofon uzluksiz
-          tinglaydi: gapirib bo&apos;lib <b>1.5 soniya</b> jim tursangiz javob avtomatik yuboriladi.
-        </p>
-      </div>
-
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Mavzuni tanlang</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Har bir stsenariy o&apos;z darajasi va roliga ega
-          </p>
+      <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.035] p-6 shadow-[0_30px_100px_-40px_rgba(124,58,237,.5)] backdrop-blur-2xl sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-fuchsia-500/20 blur-[90px]" />
+        <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-sky-500/15 blur-[90px]" />
+        <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
+          <GlowingOrb size="sm" mode="idle" />
+          <div className="flex-1 text-center sm:text-left">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-white/50">
+              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400 shadow-[0_0_10px_rgba(232,121,249,.9)]" />
+              AI voice call · premium
+            </span>
+            <h2 className="mt-3 text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-4xl">
+              Aylin Hoca bilan
+              <br />
+              <span className="bg-gradient-to-r from-fuchsia-300 via-violet-300 to-sky-300 bg-clip-text text-transparent">
+                jonli suhbat
+              </span>
+            </h2>
+            <p className="mt-3 max-w-md text-[13px] leading-relaxed text-white/45">
+              Mavzuni tanlang — Aylin shu vaziyatga mos rol o&apos;ynaydi. Mikrofon uzluksiz
+              tinglaydi: gapirib bo&apos;lib <b className="text-white/70">1.5 soniya</b> jim
+              tursangiz javob avtomatik yuboriladi.
+            </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2 text-[10px] font-semibold text-white/40 sm:justify-start">
+              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1">5 stsenariy</span>
+              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1">Hands-free</span>
+              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1">Emel Neural</span>
+            </div>
+          </div>
         </div>
-        <span className="rounded-full bg-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+      </section>
+
+      <div className="flex items-end justify-between gap-3 px-1">
+        <div>
+          <h3 className="text-lg font-extrabold tracking-tight text-white">Mavzuni tanlang</h3>
+          <p className="text-xs text-white/35">Har bir stsenariy o&apos;z darajasi va roliga ega</p>
+        </div>
+        <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-bold text-white/40">
           {scenarios.length || 5} ta
         </span>
       </div>
@@ -44,12 +59,12 @@ export default function ScenarioPicker({
       {loading ? (
         <div className="grid gap-3 sm:grid-cols-2">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-32 animate-pulse rounded-3xl bg-slate-200 dark:bg-slate-800" />
+            <div key={i} className="h-36 animate-pulse rounded-[26px] border border-white/[0.06] bg-white/[0.035]" />
           ))}
         </div>
       ) : error ? (
-        <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
-          ⚠️ {error}
+        <div className="rounded-2xl border border-rose-400/20 bg-rose-500/[0.08] p-4 text-sm text-rose-200">
+          {error}
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -60,47 +75,46 @@ export default function ScenarioPicker({
                 key={s.id}
                 type="button"
                 onClick={() => onSelect(s.id)}
-                className={`group relative overflow-hidden rounded-3xl border p-4 text-left transition ${
+                className={`group relative overflow-hidden rounded-[26px] border p-4 text-left backdrop-blur-xl transition duration-300 ${
                   active
-                    ? "border-indigo-500 bg-indigo-50 shadow-lg shadow-indigo-500/10 dark:border-indigo-400 dark:bg-indigo-950/40"
-                    : "border-slate-200 bg-white hover:border-indigo-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                    ? "border-fuchsia-400/40 bg-fuchsia-500/[0.08] shadow-[0_20px_60px_-30px_rgba(217,70,239,.9)]"
+                    : "border-white/[0.07] bg-white/[0.035] hover:border-white/20 hover:bg-white/[0.06]"
                 }`}
               >
-                <div className="flex items-start gap-3">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-100 text-2xl dark:bg-slate-800">
+                {active && (
+                  <span className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-fuchsia-500/25 blur-3xl" />
+                )}
+                <div className="relative flex items-start gap-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.06] text-2xl">
                     {s.emoji}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-bold text-slate-900 dark:text-white">{s.title_uz}</p>
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                      <p className="font-bold tracking-tight text-white">{s.title_uz}</p>
+                      <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[9px] font-bold text-white/40">
                         {s.level}
                       </span>
                     </div>
-                    <p className="mt-0.5 truncate text-[11px] text-slate-400 dark:text-slate-500">{s.title_tr}</p>
+                    <p className="mt-0.5 truncate text-[11px] text-white/30">{s.title_tr}</p>
                   </div>
                   {active && (
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-indigo-600 text-xs text-white">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gradient-to-br from-fuchsia-400 to-violet-500 text-[11px] text-white shadow-[0_0_20px_rgba(217,70,239,.6)]">
                       ✓
                     </span>
                   )}
                 </div>
-                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  {s.desc_uz}
-                </p>
-                <p className="mt-2 truncate text-[11px] italic text-indigo-500 dark:text-indigo-300">
-                  “{s.opening_tr}”
-                </p>
+                <p className="relative mt-2.5 line-clamp-2 text-xs leading-relaxed text-white/45">{s.desc_uz}</p>
+                <p className="relative mt-2 truncate text-[11px] italic text-fuchsia-200/60">“{s.opening_tr}”</p>
               </button>
             );
           })}
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white/80 p-3 dark:border-slate-800 dark:bg-slate-900/80">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
         <div>
-          <p className="text-xs font-extrabold text-slate-700 dark:text-slate-200">🐢 Aylin Hocaning tezligi</p>
-          <p className="text-[10px] text-slate-400">Yangi boshlovchilar uchun 0.8x tavsiya etiladi</p>
+          <p className="text-xs font-extrabold text-white/80">Aylin Hocaning tezligi</p>
+          <p className="text-[10px] text-white/30">Yangi boshlovchilar uchun 0.8x tavsiya etiladi</p>
         </div>
         <SpeedControl value={speed} onChange={setSpeed} />
       </div>
@@ -110,21 +124,21 @@ export default function ScenarioPicker({
           type="button"
           onClick={onStart}
           disabled={!selected || loading || starting}
-          className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4 text-base font-extrabold text-white shadow-xl shadow-emerald-500/25 transition hover:from-emerald-400 hover:to-teal-500 disabled:cursor-not-allowed disabled:opacity-40"
+          className="group relative flex-1 overflow-hidden rounded-2xl bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500 px-6 py-4 text-base font-extrabold text-white shadow-[0_20px_60px_-20px_rgba(217,70,239,.8)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {starting ? "Boshlanmoqda…" : "📞 Qo'ng'iroqni boshlash"}
+          <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-40" />
+          <span className="relative">{starting ? "Ulanyapti…" : "Qo'ng'iroqni boshlash"}</span>
         </button>
         <button
           type="button"
           onClick={onBack}
-          className="rounded-2xl border border-slate-200 px-6 py-4 text-sm font-bold text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-4 text-sm font-bold text-white/50 transition hover:bg-white/[0.08] hover:text-white/80"
         >
-          ← Simulyator
+          ← Studio
         </button>
       </div>
-      <p className="text-center text-[11px] leading-relaxed text-slate-400 dark:text-slate-500">
-        🎙️ Mikrofon ruxsatini bering · Chrome yoki Edge tavsiya etiladi · Aylin faqat Emel Neural
-        ovozida gapiradi
+      <p className="text-center text-[10px] leading-relaxed text-white/25">
+        Mikrofon ruxsatini bering · Chrome yoki Edge tavsiya etiladi · Aylin faqat Emel Neural ovozida gapiradi
       </p>
     </div>
   );

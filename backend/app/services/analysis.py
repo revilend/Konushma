@@ -98,7 +98,12 @@ def _user_prompt(transcription: str, question_tr: str, question_uz: str, mode: s
     )
 
 
-async def _call_gemini(payload: str, system_prompt: str = SYSTEM_PROMPT, schema: dict | None = None) -> dict:
+async def _call_gemini(
+    payload: str,
+    system_prompt: str = SYSTEM_PROMPT,
+    schema: dict | None = None,
+    api_key: str | None = None,
+) -> dict:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
     body = {
         "system_instruction": {"parts": [{"text": system_prompt}]},
@@ -110,7 +115,7 @@ async def _call_gemini(payload: str, system_prompt: str = SYSTEM_PROMPT, schema:
         },
     }
     async with httpx.AsyncClient(timeout=60) as client:
-        r = await client.post(url, json=body, headers={"x-goog-api-key": GEMINI_API_KEY})
+        r = await client.post(url, json=body, headers={"x-goog-api-key": api_key or GEMINI_API_KEY})
         r.raise_for_status()
         data = r.json()
         text = data["candidates"][0]["content"]["parts"][0]["text"]
@@ -148,13 +153,22 @@ def _parse_json(text: str) -> dict:
     return json.loads(raw)
 
 
-async def call_llm(payload: str, system_prompt: str = SYSTEM_PROMPT, schema: dict | None = None) -> dict:
+async def call_llm(
+    payload: str,
+    system_prompt: str = SYSTEM_PROMPT,
+    schema: dict | None = None,
+    api_key: str | None = None,
+) -> dict:
     """Provider tanlab, JSON javob qaytaradi (Gemini -> OpenAI zaxira)."""
-    provider = ai_provider()
+    provider = ai_provider(api_key)
     if provider == "none":
-        raise RuntimeError("AI kaliti yo'q: GEMINI_API_KEY yoki OPENAI_API_KEY sozlanmagan.")
+        raise RuntimeError("AI kaliti yo'q: API kalit kiriting yoki GEMINI_API_KEY sozlang.")
     try:
-        return await _call_gemini(payload, system_prompt, schema) if provider == "gemini" else await _call_openai(payload, system_prompt)
+        return (
+            await _call_gemini(payload, system_prompt, schema, api_key)
+            if provider == "gemini"
+            else await _call_openai(payload, system_prompt)
+        )
     except Exception as exc:
         log.warning("Asosiy provider xato berdi: %s", exc)
         if provider == "gemini" and OPENAI_API_KEY:
@@ -195,7 +209,8 @@ async def analyze(
     question_uz: str,
     mode: str = "practice",
     scenario: str = "",
+    api_key: str | None = None,
 ) -> dict:
     payload = _user_prompt(transcription, question_tr, question_uz, mode, scenario)
-    result = await call_llm(payload)
+    result = await call_llm(payload, api_key=api_key)
     return _normalize(result, transcription)

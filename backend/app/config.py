@@ -19,7 +19,14 @@ TTS_RATE: str = "+0%"   # 1.0 tezlik (tabiiy)
 TTS_PITCH: str = "+0Hz"  # 1.0 balandlik (tabiiy)
 
 
-def ai_provider() -> str:
+def clean_api_key(value: str | None) -> str:
+    return (value or "").strip()
+
+
+def ai_provider(api_key: str | None = None) -> str:
+    """Mijoz yuborgan kalit ustuvor; u bo'lmasa .env kalitlari ishlatiladi."""
+    if clean_api_key(api_key):
+        return "gemini"
     if GEMINI_API_KEY:
         return "gemini"
     if OPENAI_API_KEY:

@@ -1,5 +1,21 @@
 const BASE = import.meta.env.VITE_API_URL || ""; // bo'sh -> same-origin (vite proxy)
 
+export const API_KEY_STORAGE = "tp-gemini-key";
+
+export function readStoredKey() {
+  try {
+    return localStorage.getItem(API_KEY_STORAGE) || "";
+  } catch {
+    return "";
+  }
+}
+
+// Kalit faqat brauzerda; har bir AI so'rovida header orqali yuboriladi.
+function withKey(headers = {}) {
+  const key = readStoredKey();
+  return key ? { ...headers, "X-Gemini-Key": key } : headers;
+}
+
 async function handle(res) {
   if (!res.ok) {
     let detail = `HTTP ${res.status}`;
@@ -13,7 +29,7 @@ async function handle(res) {
 }
 
 export const api = {
-  config: () => fetch(`${BASE}/api/config`).then(handle),
+  config: () => fetch(`${BASE}/api/config`, { headers: withKey() }).then(handle),
 
   scenarios: () => fetch(`${BASE}/api/scenarios`).then(handle),
 
@@ -23,7 +39,7 @@ export const api = {
   analyze: (transcription, question, mode, scenario = "") =>
     fetch(`${BASE}/api/analyze`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: withKey({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         transcription,
         question_tr: question.tr,
@@ -36,7 +52,7 @@ export const api = {
   report: (payload) =>
     fetch(`${BASE}/api/report`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: withKey({ "Content-Type": "application/json" }),
       body: JSON.stringify(payload),
     }).then(handle),
 

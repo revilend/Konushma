@@ -212,3 +212,13 @@ Eslatmalar:
 - Hobby tarifi shaxsiy/demo loyihalar uchun; homiy reklama bilan tijoriy foydalanish uchun Pro kerak.
 - Agar Microsoft tomonidan `edge-tts` WebSocket'i bloklansa, backendni Render'ga ko'chirish mumkin —
   frontend Vercel'da qoladi, faqat `VITE_API_URL` ni Render manziliga o'zgartirib qayta build qilinadi.
+
+### 3.1. API kalitni brauzerdan kiritish
+
+Endi `backend/.env` ni qo'lda tahrirlash shart emas:
+
+1. Yuqori o'ng burchakdagi **⚙️ API Kalit** tugmasini bosing.
+2. [Google AI Studio](https://aistudio.google.com/app/apikey) dan bepul Gemini kalitini oling.
+3. Kalitni oynaga kiriting va **Saqlash va boshlash** ni bosing.
+
+Kalit `localStorage` da (`tp-gemini-key`) saqlanadi va har bir `/api/analyze`, `/api/report`, `/api/config` so'rovida `X-Gemini-Key` header'i orqali yuboriladi. Backend uni **saqlamaydi**; `.env` dagi `GEMINI_API_KEY` zaxira variant bo'lib qoladi. Kalit saqlangach ogohlantirish yo'qoladi va qo'ng'iroq darhol ishlaydi. Umumiy kompyuterda kalitni saqlamang.

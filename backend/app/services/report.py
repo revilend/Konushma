@@ -180,8 +180,10 @@ def _normalize(raw: dict, turns: list[dict], mistakes: list[dict], scenario_id: 
     return result
 
 
-async def build_report(turns: list[dict], mistakes: list[dict], scenario_id: str = "") -> dict:
-    if ai_provider() == "none" or not turns:
+async def build_report(
+    turns: list[dict], mistakes: list[dict], scenario_id: str = "", api_key: str | None = None
+) -> dict:
+    if ai_provider(api_key) == "none" or not turns:
         return _local_report(turns, mistakes, scenario_id)
     sc = get_scenario(scenario_id)
     scenario_line = f"STENARIY: {sc['title_uz']} ({sc['level']}). {sc['context']}" if sc else "STENARIY: erkin suhbat."
@@ -196,7 +198,7 @@ async def build_report(turns: list[dict], mistakes: list[dict], scenario_id: str
             lines.append(f"- {m['wrong']} -> {m['correct']} ({m['explanation_uz']})")
     payload = "\n".join(lines) + "\n\nYuqoridagi suhbat bo'yicha hisobotni FAQAT JSON qilib qaytar."
     try:
-        raw = await call_llm(payload, REPORT_PROMPT, REPORT_SCHEMA)
+        raw = await call_llm(payload, REPORT_PROMPT, REPORT_SCHEMA, api_key=api_key)
         return _normalize(raw, turns, mistakes, scenario_id)
     except Exception as exc:
         log.warning("AI hisobot xatosi, lokal hisob ishlatiladi: %s", exc)

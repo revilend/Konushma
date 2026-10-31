@@ -33,3 +33,195 @@ body {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
+
+/* ─────────────────────────────────────────────
+   Premium dark — Aylin Voice 2026
+   ───────────────────────────────────────────── */
+html {
+  color-scheme: dark;
+  background: #090a10;
+}
+body {
+  background: #090a10;
+  color: #e9ebf3;
+  overflow-x: hidden;
+}
+::selection {
+  background: rgba(217, 70, 239, 0.35);
+  color: #fff;
+}
+
+.glass-chip {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* Golografik ovoz shari */
+.orb-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 224px;
+  height: 224px;
+  isolation: isolate;
+  flex-shrink: 0;
+}
+.orb-sm {
+  width: 148px;
+  height: 148px;
+}
+.orb-halo {
+  position: absolute;
+  inset: -28px;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 40% 35%, rgba(255, 92, 170, 0.5), transparent 55%),
+    radial-gradient(circle at 65% 65%, rgba(124, 58, 237, 0.45), transparent 60%),
+    radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.28), transparent 70%);
+  filter: blur(34px);
+  animation: orbHalo 7s ease-in-out infinite;
+  z-index: -1;
+}
+.orb-core {
+  width: 158px;
+  height: 158px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.95), transparent 22%),
+    radial-gradient(circle at 24% 28%, #ff8ec9 0%, transparent 44%),
+    radial-gradient(circle at 74% 26%, #a78bfa 0%, transparent 48%),
+    radial-gradient(circle at 52% 80%, #38bdf8 0%, transparent 56%),
+    radial-gradient(circle at 48% 46%, #fb4d9b 0%, #7c3aed 56%, #141a3d 100%);
+  box-shadow:
+    inset -18px -20px 40px rgba(7, 8, 20, 0.6),
+    inset 12px 12px 34px rgba(255, 255, 255, 0.24),
+    0 0 60px rgba(236, 72, 153, 0.42),
+    0 0 130px rgba(124, 58, 237, 0.32);
+  filter: saturate(1.25) blur(0.2px);
+  animation: orbMorph 9s ease-in-out infinite;
+}
+.orb-sm .orb-core {
+  width: 108px;
+  height: 108px;
+}
+.orb-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+.orb-ring-1 { inset: 12px; animation: ringSpin 18s linear infinite; border-bottom-color: rgba(255, 158, 211, 0.5); }
+.orb-ring-2 { inset: -2px; animation: ringSpin 26s linear infinite reverse; border-top-color: rgba(147, 197, 253, 0.45); }
+.orb-sm .orb-ring-1 { inset: 8px; }
+.orb-sm .orb-ring-2 { inset: 0; }
+.orb-spark {
+  position: absolute;
+  inset: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.16), transparent 65%);
+  animation: sparkPulse 2.4s ease-in-out infinite;
+}
+.orb-speaking .orb-core { animation-duration: 3.6s; }
+.orb-speaking .orb-halo { animation-duration: 2.8s; opacity: 1; }
+.orb-listening .orb-core { animation-duration: 5.4s; }
+.orb-listening .orb-halo { animation-duration: 3.8s; }
+.orb-thinking .orb-core { animation: orbThink 2.2s ease-in-out infinite; }
+.orb-thinking .orb-halo { animation-duration: 2s; }
+.orb-muted .orb-core { filter: grayscale(0.55) saturate(0.6) brightness(0.7); animation-duration: 14s; }
+.orb-muted .orb-halo { opacity: 0.25; animation: none; }
+
+@keyframes orbMorph {
+  0%, 100% { border-radius: 49% 51% 54% 46% / 47% 44% 56% 53%; transform: rotate(0deg) scale(1); }
+  33% { border-radius: 56% 44% 46% 54% / 53% 56% 44% 47%; transform: rotate(7deg) scale(1.035); }
+  66% { border-radius: 44% 56% 52% 48% / 55% 46% 54% 45%; transform: rotate(-6deg) scale(0.98); }
+}
+@keyframes orbHalo {
+  0%, 100% { transform: scale(1); opacity: 0.75; }
+  50% { transform: scale(1.14); opacity: 1; }
+}
+@keyframes orbThink {
+  0%, 100% { transform: scale(0.97) rotate(0); filter: hue-rotate(0deg) saturate(1.15); }
+  50% { transform: scale(1.03) rotate(4deg); filter: hue-rotate(28deg) saturate(1.35); }
+}
+@keyframes ringSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes sparkPulse {
+  0%, 100% { transform: scale(0.9); opacity: 0.35; }
+  50% { transform: scale(1.18); opacity: 0.8; }
+}
+
+/* Jonli subtitrlar */
+.caption-line {
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+}
+.caption-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(9px);
+  filter: blur(3px);
+  animation: captionIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes captionIn {
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* Apple uslubidagi pastki dock */
+.dock-btn {
+  display: flex;
+  width: 66px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.dock-btn > svg {
+  box-sizing: content-box;
+  width: 24px;
+  height: 24px;
+  padding: 13px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.075);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.dock-btn:hover { color: #fff; }
+.dock-btn:hover > svg { background: rgba(255, 255, 255, 0.13); transform: translateY(-1px); }
+.dock-btn:active > svg { transform: scale(0.94); }
+.dock-btn-off { color: #fda4af; }
+.dock-btn-off > svg { background: rgba(244, 63, 94, 0.14); border-color: rgba(244, 63, 94, 0.3); }
+.dock-btn-active { color: #f0abfc; }
+.dock-btn-active > svg { background: rgba(217, 70, 239, 0.16); border-color: rgba(217, 70, 239, 0.35); }
+.dock-end {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, #ff5c74 0%, #e11d48 100%);
+  color: #fff;
+  box-shadow:
+    0 0 42px rgba(244, 63, 94, 0.45),
+    0 14px 30px -10px rgba(225, 29, 72, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.2s ease;
+}
+.dock-end:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.dock-end:active { transform: scale(0.94); }
+
+/* Premium scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }

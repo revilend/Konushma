@@ -10,7 +10,7 @@ BUYRUQLAR:
 """
 import logging
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
@@ -70,8 +70,8 @@ async def health():
 
 
 @app.get("/api/config")
-async def config():
-    provider = ai_provider()
+async def config(x_gemini_key: str | None = Header(default=None, alias="X-Gemini-Key")):
+    provider = ai_provider(x_gemini_key)
     return {
         "ai_provider": provider,
         "tts_voice": TTS_VOICE,
@@ -93,8 +93,11 @@ async def question(exclude: int | None = Query(default=None, ge=0)):
 
 
 @app.post("/api/analyze")
-async def analyze_route(req: AnalyzeRequest):
-    if ai_provider() == "none":
+async def analyze_route(
+    req: AnalyzeRequest,
+    x_gemini_key: str | None = Header(default=None, alias="X-Gemini-Key"),
+):
+    if ai_provider(x_gemini_key) == "none":
         raise HTTPException(
             status_code=503,
             detail=(
@@ -103,7 +106,9 @@ async def analyze_route(req: AnalyzeRequest):
             ),
         )
     try:
-        result = await analyze(req.transcription, req.question_tr, req.question_uz, req.mode, req.scenario)
+        result = await analyze(
+            req.transcription, req.question_tr, req.question_uz, req.mode, req.scenario, x_gemini_key
+        )
     except Exception as exc:
         logging.exception("Tahlil xatosi")
         return JSONResponse(status_code=502, content={"detail": f"Tahlil xatosi: {exc}"})
@@ -111,11 +116,14 @@ async def analyze_route(req: AnalyzeRequest):
 
 
 @app.post("/api/report")
-async def report_route(req: ReportRequest):
+async def report_route(
+    req: ReportRequest,
+    x_gemini_key: str | None = Header(default=None, alias="X-Gemini-Key"),
+):
     turns = [t.model_dump() for t in req.turns]
     mistakes = [m.model_dump() for m in req.mistakes]
     try:
-        return await build_report(turns, mistakes, req.scenario)
+        return await build_report(turns, mistakes, req.scenario, x_gemini_key)
     except Exception as exc:
         logging.exception("Hisobot xatosi")
         return JSONResponse(status_code=502, content={"detail": f"Hisobot xatosi: {exc}"})

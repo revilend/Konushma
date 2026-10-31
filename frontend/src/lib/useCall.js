@@ -32,16 +32,18 @@ export function useCall({ onTurn, active }) {
   const turnDoneRef = useRef(() => {});
   const monitorRef = useRef(() => {});
 
-  const [callState, setCallState] = useState("idle"); // idle | listening | thinking | speaking
+  const [callState, setCallState] = useState("idle"); // idle | listening | thinking | speaking | muted
   const [interim, setInterim] = useState("");
   const [seconds, setSeconds] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const mutedRef = useRef(false);
 
   useEffect(() => {
     onTurnRef.current = onTurn;
   }, [onTurn]);
 
   const openMic = useCallback(() => {
-    if (!SR || !inCallRef.current || busyRef.current) return;
+    if (!SR || !inCallRef.current || busyRef.current || mutedRef.current) return;
     finalRef.current = "";
     interimRef.current = "";
     setInterim("");
@@ -63,9 +65,9 @@ export function useCall({ onTurn, active }) {
       rec.onerror = () => {};
       rec.onend = () => {
         // Chrome sessiyani o'z-o'zidan yopadi — qo'ng'iroq davom etsa qayta och
-        if (inCallRef.current && !busyRef.current) {
+        if (inCallRef.current && !busyRef.current && !mutedRef.current) {
           setTimeout(() => {
-            if (inCallRef.current && !busyRef.current) {
+            if (inCallRef.current && !busyRef.current && !mutedRef.current) {
               try {
                 rec.start();
               } catch {}
@@ -116,7 +118,7 @@ export function useCall({ onTurn, active }) {
 
   const monitorLoop = useCallback(() => {
     const analyser = analyserRef.current;
-    if (!inCallRef.current || !analyser) return;
+    if (!inCallRef.current || !analyser || mutedRef.current) return;
     const data = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(data);
     let sum = 0;
@@ -146,6 +148,8 @@ export function useCall({ onTurn, active }) {
   const start = useCallback(async () => {
     inCallRef.current = true;
     busyRef.current = false;
+    mutedRef.current = false;
+    setMuted(false);
     setSeconds(0);
     timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
 
@@ -165,12 +169,49 @@ export function useCall({ onTurn, active }) {
   }, [openMic]);
 
   const aiSpeakingChanged = useCallback((flag) => {
-    setCallState(flag ? "speaking" : "listening");
+    setCallState(flag ? "speaking" : mutedRef.current ? "muted" : "listening");
   }, []);
+
+  const toggleMute = useCallback(() => {
+    if (!inCallRef.current) return;
+    const next = !mutedRef.current;
+    mutedRef.current = next;
+    setMuted(next);
+    if (streamRef.current) {
+      streamRef.current.getAudioTracks().forEach((track) => {
+        track.enabled = !next;
+      });
+    }
+    if (next) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+      if (recRef.current) {
+        try {
+          recRef.current.onend = null;
+          recRef.current.stop();
+        } catch {}
+        recRef.current = null;
+      }
+      finalRef.current = "";
+      interimRef.current = "";
+      setInterim("");
+      setCallState("muted");
+    } else {
+      speakingNowRef.current = false;
+      lastVoiceTs.current = 0;
+      if (inCallRef.current && analyserRef.current) {
+        rafRef.current = requestAnimationFrame(monitorRef.current);
+      }
+      setCallState("listening");
+      openMic();
+    }
+  }, [openMic]);
 
   const end = useCallback(() => {
     inCallRef.current = false;
     busyRef.current = false;
+    mutedRef.current = false;
+    setMuted(false);
     clearInterval(timerRef.current);
     cancelAnimationFrame(rafRef.current);
     if (recRef.current) {
@@ -195,5 +236,15 @@ export function useCall({ onTurn, active }) {
 
   useEffect(() => end, [end]);
 
-  return { callState, interim, seconds, start, end, aiSpeakingChanged, getAnalyser: () => analyserRef.current };
+  return {
+    callState,
+    interim,
+    seconds,
+    muted,
+    start,
+    end,
+    toggleMute,
+    aiSpeakingChanged,
+    getAnalyser: () => analyserRef.current,
+  };
 }
