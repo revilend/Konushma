@@ -15,10 +15,12 @@ async function handle(res) {
 export const api = {
   config: () => fetch(`${BASE}/api/config`).then(handle),
 
+  scenarios: () => fetch(`${BASE}/api/scenarios`).then(handle),
+
   question: (excludeId) =>
     fetch(`${BASE}/api/question${excludeId ? `?exclude=${excludeId}` : ""}`).then(handle),
 
-  analyze: (transcription, question, mode) =>
+  analyze: (transcription, question, mode, scenario = "") =>
     fetch(`${BASE}/api/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -27,7 +29,15 @@ export const api = {
         question_tr: question.tr,
         question_uz: question.uz || "",
         mode,
+        scenario,
       }),
+    }).then(handle),
+
+  report: (payload) =>
+    fetch(`${BASE}/api/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     }).then(handle),
 
   // Matnli javobni mp3 ovozga aylantiradi — faqat Microsoft Emel Neural (tr-TR),

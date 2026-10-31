@@ -4,12 +4,13 @@ import QuestionCard from "./components/QuestionCard";
 import RecorderBar from "./components/RecorderBar";
 import ResultPanel from "./components/ResultPanel";
 import CallScreen from "./components/CallScreen";
+import VocabularyPage from "./components/VocabularyPage";
 import { useRecorder } from "./lib/useRecorder";
+import { useVocabulary } from "./lib/useVocabulary";
 import { api } from "./lib/api";
 
 export default function App() {
-  // holatlar
-  const [view, setView] = useState("sim"); // sim | call
+  const [view, setView] = useState("sim"); // sim | call | vocab
   const [mode, setMode] = useState("practice");
   const [dark, setDark] = useState(() => localStorage.getItem("tp-theme") !== "light");
   const [cfg, setCfg] = useState(null);
@@ -23,38 +24,33 @@ export default function App() {
 
   const rec = useRecorder("tr-TR");
   const audioRef = useRef(null);
+  const vocab = useVocabulary();
 
-  // tema
   useEffect(() => {
     const root = document.documentElement;
     dark ? root.classList.add("dark") : root.classList.remove("dark");
     localStorage.setItem("tp-theme", dark ? "dark" : "light");
   }, [dark]);
 
-  // server config + birinchi savol
   useEffect(() => {
     api.config().then(setCfg).catch(() => setCfg({ ai_provider: "unknown", setup_needed: true }));
   }, []);
 
+  const loadQuestion = useCallback(async (excludeId) => {
+    try {
+      const q = await api.question(excludeId);
+      setQuestion(q);
+    } catch (e) {
+      setError(`Savol yuklanmadi: ${e.message}`);
+    }
+  }, []);
+
   useEffect(() => {
     if (!cfg) return;
-    loadQuestion(null).then(() => {});
-  }, [cfg]);
-
-  const loadQuestion = useCallback(
-    async (excludeId) => {
-      try {
-        const q = await api.question(excludeId);
-        setQuestion(q);
-      } catch (e) {
-        setError(`Savol yuklanmadi: ${e.message}`);
-      }
-    },
-    []
-  );
+    loadQuestion(null);
+  }, [cfg, loadQuestion]);
 
   // edge-tts (tr-TR-EmelNeural) — brauzer SpeechSynthesis ISHLATILMAYDI.
-  // Promise qaytaradi: bitgach mikrofon qayta ochiladi (jonli qo'ng'iroq uchun).
   const playTTS = useCallback((text) => {
     if (!text) return Promise.resolve();
     audioRef.current?.pause();
@@ -131,7 +127,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
-      {/* fon gradientlari */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-24 -left-16 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl" />
         <div className="absolute top-1/3 -right-20 h-96 w-96 rounded-full bg-fuchsia-500/15 blur-3xl" />
@@ -139,15 +134,16 @@ export default function App() {
       </div>
 
       <Header
+        view={view}
+        onView={setView}
         mode={mode}
         setMode={setMode}
         dark={dark}
         toggleDark={() => setDark(!dark)}
-        onCall={() => setView("call")}
-        inCall={view === "call"}
+        vocabCount={vocab.count}
       />
 
-      <main className="relative mx-auto max-w-3xl space-y-5 px-4 py-6 pb-24">
+      <main className="relative mx-auto max-w-3xl space-y-5 px-3 py-5 pb-24 sm:px-4">
         {cfg?.setup_needed && view === "sim" && (
           <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
             ⚙️ <b>AI kalit sozlanmagan.</b> Backend fayli{" "}
@@ -158,9 +154,21 @@ export default function App() {
           </div>
         )}
 
-        {view === "call" ? (
-          <CallScreen onExit={() => setView("sim")} playTTS={playTTS} stopTTS={stopTTS} />
-        ) : (
+        {view === "vocab" && (
+          <VocabularyPage vocab={vocab} playTTS={playTTS} onBack={() => setView("sim")} />
+        )}
+
+        {view === "call" && (
+          <CallScreen
+            onExit={() => setView("sim")}
+            onVocab={() => setView("vocab")}
+            playTTS={playTTS}
+            stopTTS={stopTTS}
+            vocab={vocab}
+          />
+        )}
+
+        {view === "sim" && (
           <>
             {error && (
               <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
@@ -177,11 +185,7 @@ export default function App() {
 
             {phase !== "result" && (
               <>
-                <QuestionCard
-                  question={question}
-                  speaking={speaking}
-                  onPlay={() => playTTS(question?.tr)}
-                />
+                <QuestionCard question={question} speaking={speaking} onPlay={() => playTTS(question?.tr)} />
                 <RecorderBar
                   supported={rec.supported}
                   recording={rec.recording}
@@ -206,6 +210,8 @@ export default function App() {
                 onPlayAnswer={() => playTTS(analysis?.model_answer_tr)}
                 onNext={next}
                 busy={busy}
+                vocab={vocab}
+                playTTS={playTTS}
               />
             )}
           </>

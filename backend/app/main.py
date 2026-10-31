@@ -1,10 +1,12 @@
 """TürkçePrep AI (Aylin Hoca) — FastAPI backend.
 
 BUYRUQLAR:
-  POST /api/analyze   -> javob tahlili (transcription + savol konteksti)
-  GET  /api/tts       -> matnni mp3 ovozga aylanta (edge-tts, tr-TR-EmelNeural)
-  GET  /api/question  -> tasodifiy suhbat savoli
-  GET  /api/config    -> AI provider holati (setup tekshiruvi)
+  POST /api/analyze    -> javob tahlili (transcription + savol konteksti)
+  POST /api/report     -> qo'ng'iroq yakuni bo'yicha hisobot (CEFR + 3 mezon)
+  GET  /api/tts        -> matnni mp3 ovozga aylantiradi (tr-TR-EmelNeural)
+  GET  /api/question   -> tasodifiy suhbat savoli
+  GET  /api/scenarios  -> mavzuli muloqot stsenariylari
+  GET  /api/config     -> AI provider holati (setup tekshiruvi)
 """
 import logging
 
@@ -16,6 +18,8 @@ from pydantic import BaseModel, Field
 from .config import TTS_PITCH, TTS_RATE, TTS_VOICE, ai_provider
 from .services.analysis import analyze
 from .services.questions import random_question
+from .services.report import build_report
+from .services.scenarios import list_scenarios
 from .services.tts_service import synth
 
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +27,7 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(
     title="TürkçePrep AI — Aylin Hoca API",
     description="Turk tilidagi og'zaki nutq (speaking) simulatori uchun backend.",
-    version="1.0.0",
+    version="1.1.0",
 )
 
 app.add_middleware(
@@ -39,6 +43,25 @@ class AnalyzeRequest(BaseModel):
     question_tr: str = Field(min_length=1, max_length=1000)
     question_uz: str = Field(default="", max_length=1500)
     mode: str = Field(default="practice", pattern="^(practice|exam|call)$")
+    scenario: str = Field(default="", max_length=40)
+
+
+class ReportTurn(BaseModel):
+    user: str = Field(min_length=1, max_length=2000)
+    aylin: str = Field(default="", max_length=2000)
+
+
+class ReportMistake(BaseModel):
+    wrong: str = Field(default="", max_length=500)
+    correct: str = Field(default="", max_length=500)
+    type: str = Field(default="grammar", max_length=32)
+    explanation_uz: str = Field(default="", max_length=1000)
+
+
+class ReportRequest(BaseModel):
+    turns: list[ReportTurn] = Field(default_factory=list, max_length=40)
+    mistakes: list[ReportMistake] = Field(default_factory=list, max_length=100)
+    scenario: str = Field(default="", max_length=40)
 
 
 @app.get("/api/health")
@@ -59,6 +82,11 @@ async def config():
     }
 
 
+@app.get("/api/scenarios")
+async def scenarios():
+    return {"scenarios": list_scenarios()}
+
+
 @app.get("/api/question")
 async def question(exclude: int | None = Query(default=None, ge=0)):
     return random_question(exclude)
@@ -75,11 +103,22 @@ async def analyze_route(req: AnalyzeRequest):
             ),
         )
     try:
-        result = await analyze(req.transcription, req.question_tr, req.question_uz, req.mode)
+        result = await analyze(req.transcription, req.question_tr, req.question_uz, req.mode, req.scenario)
     except Exception as exc:
         logging.exception("Tahlil xatosi")
-        return JSONResponse(status_code=502, content={"detail": f"Tahllil xato: {exc}"})
+        return JSONResponse(status_code=502, content={"detail": f"Tahlil xatosi: {exc}"})
     return result
+
+
+@app.post("/api/report")
+async def report_route(req: ReportRequest):
+    turns = [t.model_dump() for t in req.turns]
+    mistakes = [m.model_dump() for m in req.mistakes]
+    try:
+        return await build_report(turns, mistakes, req.scenario)
+    except Exception as exc:
+        logging.exception("Hisobot xatosi")
+        return JSONResponse(status_code=502, content={"detail": f"Hisobot xatosi: {exc}"})
 
 
 @app.get("/api/tts")

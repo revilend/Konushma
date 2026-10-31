@@ -148,6 +148,34 @@ Swagger: <http://localhost:8000/docs>
         ├── lib/ api.js, useRecorder.js   # STT + timer + analyser
         └── components/ Header, QuestionCard, RecorderBar, Waveform, ResultPanel
 
+## 🆕 2.0 — Hisobot, stsenariylar va lug'at
+
+### 📊 Qo'ng'iroq yakuni hisoboti
+End Call bosilgach `/api/report` ishlaydi va ekranda:
+- **CEFR daraja** (A1–C1) va umumiy xulosa;
+- **3 mezon bo'yicha ball**: Ravonlik (fluency), Lug'at boyligi (vocabulary), Grammatika (grammar);
+- **Kuchli tomonlaringiz**;
+- **Tuzatish kerak bo'lgan xatolar** (❌ xato → ✅ to'g'risi, 💡 o'zbekcha izoh);
+- **Foydali turkcha iboralar** o'zbekcha tarjimasi bilan.
+
+AI kaliti bo'lmasa ham hisobot **lokal statistika** asosida yaratiladi (`source: "local"`); kalit qo'yilganda Gemini to'liq tahlil qiladi (`source: "ai"`).
+
+### 🎭 Mavzuli stsenariylar (`GET /api/scenarios`)
+| Stsenariy | Daraja |
+|---|---|
+| ☕ Kafeda buyurtma berish | A1–A2 |
+| 🛍️ Kapalıçarşı'da savdolashish | B1 |
+| ✈️ Aeroportda pasport nazorati | A2–B1 |
+| 🎓 TÖMER / Yunus Emre og'zaki imtihoni | B2–C1 |
+| 💬 Erkin do'stona suhbat | A2–B2 |
+
+Tanlangan stsenariy Aylin Hocaning roli va savollariga uzatiladi (`/api/analyze` dagi `scenario` maydoni).
+
+### 📚 Mening lug'atim
+- Har bir xato va yangi ibora yonida **⭐ Saqlash** tugmasi.
+- Lug'at `localStorage`da saqlanadi (server/baza talab qilinmaydi).
+- Alohida **Lug'atim** sahifasida qidirish, tinglash, o'chirish va **🔁 Takrorlash** (flashcard) rejimi.
+
 ## 🚀 Vercel'ga deploy (bepul)
 
 Loyiha bitta Vercel loyihasida ishlaydi: React statik fayllar CDN'dan, `/api/*` esa

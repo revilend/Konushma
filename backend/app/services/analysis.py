@@ -13,6 +13,7 @@ from ..config import (
     ai_provider,
 )
 from .instruction import SYSTEM_PROMPT
+from .scenarios import get_scenario
 
 log = logging.getLogger("aylin.ai")
 
@@ -23,6 +24,7 @@ RESULT_KEYS = [
     "model_answer_tr",
     "next_question_tr",
     "positive_note_uz",
+    "useful_phrases",
 ]
 
 # Gemini uchun qat'iy JSON sxemasi
@@ -47,37 +49,51 @@ GEMINI_RESPONSE_SCHEMA = {
         "model_answer_tr": {"type": "STRING"},
         "next_question_tr": {"type": "STRING"},
         "positive_note_uz": {"type": "STRING"},
+        "useful_phrases": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {"tr": {"type": "STRING"}, "uz": {"type": "STRING"}},
+                "required": ["tr", "uz"],
+            },
+        },
     },
     "required": RESULT_KEYS,
 }
 
 
-def _user_prompt(transcription: str, question_tr: str, question_uz: str, mode: str) -> str:
+def _user_prompt(transcription: str, question_tr: str, question_uz: str, mode: str, scenario_id: str = "") -> str:
     if mode == "exam":
         rejim = "IMTIHON (qat'iy sinov) rejimi"
     elif mode == "call":
         rejim = "JONLI QO'NG'IROQ (telefon suhbati) rejimi — Aylin javobi qisqa (1-2 jumla), suhbatkor va telefonovaz bo'lsin"
     else:
         rejim = "PRATIK (murabbiy) rejimi"
+    sc = get_scenario(scenario_id)
+    scenario_line = (
+        f"STENARIY: {sc['title_uz']} ({sc['level']}) — {sc['context']}\n" if sc else ""
+    )
     return (
         f"REJIM: {rejim}.\n"
+        f"{scenario_line}"
         f"AYLIN SAVOL berdi (question_tr): {question_tr}\n"
         f"Savolning o'zbekcha tarjimasi: {question_uz}\n"
         f"FOYDALANUVCHI gapirgan javob (STT transkript): {transcription!r}\n\n"
         "Vazifa: yuqoridagi instruksiya bo'yicha to'liq tahlil qil va FAQAT JSON qaytar."
-        " next_question_tr — savolga ulangan yangi tabiiy ochiq savol bo'lsin."
+        " next_question_tr — savolga ulangan va stsenariyga mos yangi tabiiy ochiq savol bo'lsin."
+        " useful_phrases — shu javobda ishlatilishi mumkin bo'lgan 1-3 ta foydali turkcha ibora (o'zbekcha tarjimasi bilan)."
     )
 
 
-async def _call_gemini(payload: str) -> dict:
+async def _call_gemini(payload: str, system_prompt: str = SYSTEM_PROMPT, schema: dict | None = None) -> dict:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
     body = {
-        "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+        "system_instruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"role": "user", "parts": [{"text": payload}]}],
         "generationConfig": {
             "temperature": 0.35,
             "responseMimeType": "application/json",
-            "responseSchema": GEMINI_RESPONSE_SCHEMA,
+            "responseSchema": schema or GEMINI_RESPONSE_SCHEMA,
         },
     }
     async with httpx.AsyncClient(timeout=60) as client:
@@ -88,7 +104,7 @@ async def _call_gemini(payload: str) -> dict:
     return _parse_json(text)
 
 
-async def _call_openai(payload: str) -> dict:
+async def _call_openai(payload: str, system_prompt: str = SYSTEM_PROMPT) -> dict:
     url = f"{OPENAI_BASE_URL}/chat/completions"
     async with httpx.AsyncClient(timeout=60) as client:
         r = await client.post(
@@ -98,7 +114,7 @@ async def _call_openai(payload: str) -> dict:
                 "temperature": 0.35,
                 "response_format": {"type": "json_object"},
                 "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": payload},
                 ],
             },
@@ -111,13 +127,26 @@ async def _call_openai(payload: str) -> dict:
 
 
 def _parse_json(text: str) -> dict:
-    # Ponme: model ba'zan ```json ... ``` bilan qaytishi mumkin
     raw = text.strip()
     if raw.startswith("```"):
         raw = raw.strip("`\n")
         if raw.startswith("json"):
             raw = raw[4:]
     return json.loads(raw)
+
+
+async def call_llm(payload: str, system_prompt: str = SYSTEM_PROMPT, schema: dict | None = None) -> dict:
+    """Provider tanlab, JSON javob qaytaradi (Gemini -> OpenAI zaxira)."""
+    provider = ai_provider()
+    if provider == "none":
+        raise RuntimeError("AI kaliti yo'q: GEMINI_API_KEY yoki OPENAI_API_KEY sozlanmagan.")
+    try:
+        return await _call_gemini(payload, system_prompt, schema) if provider == "gemini" else await _call_openai(payload, system_prompt)
+    except Exception as exc:
+        log.warning("Asosiy provider xato berdi: %s", exc)
+        if provider == "gemini" and OPENAI_API_KEY:
+            return await _call_openai(payload, system_prompt)
+        raise
 
 
 def _normalize(result: dict, transcription: str) -> dict:
@@ -133,20 +162,21 @@ def _normalize(result: dict, transcription: str) -> dict:
     out["model_answer_tr"] = out.get("model_answer_tr") or ""
     out["next_question_tr"] = out.get("next_question_tr") or ""
     out["positive_note_uz"] = out.get("positive_note_uz") or ""
+    out["useful_phrases"] = [
+        {"tr": str(p.get("tr", ""))[:300], "uz": str(p.get("uz", ""))[:300]}
+        for p in (out.get("useful_phrases") or [])
+        if p.get("tr")
+    ][:4]
     return out
 
 
-async def analyze(transcription: str, question_tr: str, question_uz: str, mode: str = "practice") -> dict:
-    provider = ai_provider()
-    if provider == "none":
-        raise RuntimeError("AI kaliti yo'q: GEMINI_API_KEY yoki OPENAI_API_KEY sozlanmagan.")
-    payload = _user_prompt(transcription, question_tr, question_uz, mode)
-    try:
-        result = await _call_gemini(payload) if provider == "gemini" else await _call_openai(payload)
-    except Exception as exc:  # zaxira yo'nalishiga soq typalist
-        log.warning("Asosiy provider xato berdi: %s", exc)
-        if ai_provider() == "gemini" and OPENAI_API_KEY:
-            result = await _call_openai(payload)
-        else:
-            raise
+async def analyze(
+    transcription: str,
+    question_tr: str,
+    question_uz: str,
+    mode: str = "practice",
+    scenario: str = "",
+) -> dict:
+    payload = _user_prompt(transcription, question_tr, question_uz, mode, scenario)
+    result = await call_llm(payload)
     return _normalize(result, transcription)
