@@ -1,19 +1,15 @@
 /**
- * Golografik ovoz shari — ChatGPT Voice / Siri uslubida.
+ * Monoxrom golografik ovoz shari.
  * mode: idle | listening | thinking | speaking | muted
  */
 export default function GlowingOrb({ mode = "idle", size = "lg" }) {
-  const active = mode === "speaking" || mode === "listening";
   return (
-    <div
-      className={`orb-stage orb-${mode} ${size === "sm" ? "orb-sm" : ""}`}
-      aria-hidden="true"
-    >
-      <span className="orb-halo" />
-      <span className="orb-ring orb-ring-1" />
-      <span className="orb-ring orb-ring-2" />
-      <span className="orb-core" />
-      {active && <span className="orb-spark" />}
+    <div className={`voice-orb voice-orb-${mode} ${size === "sm" ? "voice-orb-sm" : ""}`} aria-hidden="true">
+      <span className="voice-orb-halo" />
+      <span className="voice-orb-ring voice-orb-ring-1" />
+      <span className="voice-orb-ring voice-orb-ring-2" />
+      <span className="voice-orb-ring voice-orb-ring-3" />
+      <span className="voice-orb-core" />
     </div>
   );
 }

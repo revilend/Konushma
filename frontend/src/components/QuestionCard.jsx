@@ -1,35 +1,40 @@
+import Icon, { LogoMark } from "./Icons";
+
 export default function QuestionCard({ question, speaking, onPlay }) {
   if (!question) {
     return (
-      <div className="animate-pulse rounded-3xl border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
-        <div className="h-4 w-1/3 rounded bg-slate-200 dark:bg-slate-800" />
-        <div className="mt-4 h-8 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
+      <div className="surface animate-pulse rounded-2xl p-6 sm:p-7">
+        <div className="h-3 w-28 rounded bg-white/[0.06]" />
+        <div className="mt-5 h-6 w-4/5 rounded bg-white/[0.05]" />
+        <div className="mt-2 h-4 w-3/5 rounded bg-white/[0.04]" />
       </div>
     );
   }
+
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-indigo-500/5 sm:p-8 dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex items-center gap-2">
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-2xl shadow-md shadow-rose-500/30">
-          👩‍🏫
-        </div>
-        <div>
-          <p className="font-bold text-slate-900 dark:text-white">Aylin Hoca 🇹🇷</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Konuşma Sınavı · Soru</p>
+    <section className="surface rounded-2xl p-5 sm:p-7">
+      <div className="flex items-center gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-300">
+          <LogoMark className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[12px] font-medium tracking-tight text-zinc-200">Aylin Hoca</p>
+          <p className="text-[10px] text-zinc-500">Konuşma sınavı · savol</p>
         </div>
         <button
           onClick={onPlay}
           disabled={speaking}
-          className="ml-auto flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+          className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[10px] font-medium text-zinc-400 transition hover:bg-white/[0.08] hover:text-zinc-100 disabled:opacity-50"
         >
-          {speaking ? "🔊 O'qilyapti..." : "🔊 Tinglash"}
+          <Icon name="volume" size={13} />
+          <span className="hidden sm:inline">{speaking ? "O'qilyapti" : "Tinglash"}</span>
         </button>
       </div>
 
-      <p className="mt-5 text-2xl font-semibold leading-snug text-slate-900 dark:text-white">
+      <p className="mt-5 text-balance text-[21px] font-medium leading-[1.35] tracking-[-0.02em] text-zinc-50 sm:text-[24px]">
         {question.tr}
       </p>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">🇺🇿 {question.uz}</p>
-    </div>
+      <p className="mt-2 text-[13px] leading-relaxed text-zinc-500">{question.uz}</p>
+    </section>
   );
 }

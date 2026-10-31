@@ -1,102 +1,70 @@
+import Icon, { LogoMark } from "./Icons";
+
 const TABS = [
-  { id: "sim", icon: "✦", label: "Studio" },
-  { id: "call", icon: "◉", label: "Qo'ng'iroq" },
-  { id: "vocab", icon: "◇", label: "Lug'atim" },
+  { id: "sim", icon: "sparkles", label: "Studio" },
+  { id: "call", icon: "phone", label: "Qo'ng'iroq" },
+  { id: "vocab", icon: "book", label: "Lug'at" },
 ];
 
-export default function Header({
-  view,
-  onView,
-  mode,
-  setMode,
-  vocabCount = 0,
-  streakCount = 0,
-  onApiKey,
-  hasApiKey = false,
-}) {
+export default function Header({ view, onView, vocabCount = 0, streakCount = 0, onApiKey, hasApiKey = false }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-[#090A10]/65 backdrop-blur-2xl">
-      <div className="mx-auto max-w-5xl px-3 sm:px-4">
-        <div className="flex items-center gap-3 py-3">
-          <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-[14px] border border-white/10 bg-white/[0.04]">
-            <span className="absolute inset-1 rounded-[11px] bg-gradient-to-br from-fuchsia-500 via-violet-500 to-sky-400 opacity-80 blur-[6px]" />
-            <span className="relative text-[11px] font-black tracking-widest text-white">TR</span>
-          </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-[15px] font-bold tracking-tight text-white">
-              TürkçePrep <span className="bg-gradient-to-r from-fuchsia-300 to-sky-300 bg-clip-text text-transparent">AI</span>
-            </h1>
-            <p className="truncate text-[10px] tracking-[0.18em] text-white/35">AYLIN · VOICE TUTOR</p>
-          </div>
+    <header className="sticky top-0 z-40 h-14 border-b border-white/[0.07] bg-[#09090b]/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 sm:px-5">
+        <button
+          onClick={() => onView("sim")}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:bg-white/[0.08] hover:text-white"
+          aria-label="TürkçePrep bosh sahifa"
+        >
+          <LogoMark className="h-4 w-4" />
+        </button>
+        <span className="hidden text-[13px] font-semibold tracking-tight text-zinc-100 md:block">
+          TürkçePrep
+        </span>
 
-          <div className="ml-auto flex items-center gap-1.5">
-            <span
-              title="Kunlik streak"
-              className={`hidden rounded-full border px-2.5 py-1 text-[10px] font-black sm:inline-flex ${
-                streakCount > 0
-                  ? "border-amber-300/20 bg-amber-400/10 text-amber-200"
-                  : "border-white/10 bg-white/[0.04] text-white/35"
-              }`}
-            >
-              🔥 {streakCount}
-            </span>
-            <button
-              onClick={onApiKey}
-              className="group flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1.5 text-[11px] font-bold text-white/70 transition hover:border-fuchsia-300/30 hover:bg-white/[0.09] hover:text-white sm:px-3"
-            >
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  hasApiKey ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,.9)]" : "bg-amber-400"
-                }`}
-              />
-              <span className="hidden sm:inline">⚙️ API Kalit</span>
-              <span className="sm:hidden">⚙️</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1 overflow-x-auto pb-2.5">
+        <nav className="ml-0.5 flex items-center gap-0.5 sm:ml-3" aria-label="Asosiy navigatsiya">
           {TABS.map((tab) => {
             const active = view === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => onView(tab.id)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold tracking-wide transition ${
+                aria-current={active ? "page" : undefined}
+                className={`flex h-8 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition ${
                   active
-                    ? "border border-white/10 bg-white/[0.09] text-white shadow-[0_4px_20px_-6px_rgba(255,255,255,.25)]"
-                    : "text-white/35 hover:bg-white/[0.04] hover:text-white/70"
+                    ? "bg-white/[0.08] text-zinc-100"
+                    : "text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300"
                 }`}
               >
-                <span className={active ? "text-fuchsia-300" : ""}>{tab.icon}</span>
-                {tab.label}
+                <Icon name={tab.icon} size={15} />
+                <span className="hidden sm:inline">{tab.label}</span>
                 {tab.id === "vocab" && vocabCount > 0 && (
-                  <span className="rounded-full bg-amber-400/15 px-1.5 py-0.5 text-[9px] font-black text-amber-200">
-                    {vocabCount}
-                  </span>
+                  <span className="hidden text-[10px] tabular-nums text-zinc-500 sm:inline">{vocabCount}</span>
                 )}
               </button>
             );
           })}
+        </nav>
 
-          {view === "sim" && (
-            <div className="ml-auto hidden shrink-0 rounded-full border border-white/10 bg-black/30 p-0.5 text-[10px] font-semibold sm:flex">
-              {[
-                ["exam", "Imtihon"],
-                ["practice", "Pratik"],
-              ].map(([id, label]) => (
-                <button
-                  key={id}
-                  onClick={() => setMode(id)}
-                  className={`rounded-full px-2.5 py-1 transition ${
-                    mode === id ? "bg-white/[0.12] text-white" : "text-white/35 hover:text-white/70"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="ml-auto flex items-center gap-1">
+          <div
+            title="Kunlik streak"
+            className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium text-zinc-500 sm:flex"
+          >
+            <Icon name="flame" size={14} />
+            <span className="tabular-nums">{streakCount}</span>
+          </div>
+          <button
+            onClick={onApiKey}
+            className="flex h-8 items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 text-[12px] font-medium text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.06] hover:text-zinc-100"
+            aria-label="API kalit sozlamalari"
+          >
+            <Icon name="key" size={14} />
+            <span className="hidden sm:inline">API kalit</span>
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${hasApiKey ? "bg-zinc-100" : "bg-zinc-600"}`}
+              aria-hidden="true"
+            />
+          </button>
         </div>
       </div>
     </header>

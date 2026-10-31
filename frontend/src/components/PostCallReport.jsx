@@ -1,9 +1,10 @@
 import SaveButton from "./SaveButton";
+import Icon from "./Icons";
 
 const METRICS = [
-  { key: "fluency", label: "Ravonlik", icon: "💬", bar: "from-emerald-500 to-teal-500" },
-  { key: "vocabulary", label: "Lug'at boyligi", icon: "📚", bar: "from-sky-500 to-indigo-500" },
-  { key: "grammar", label: "Grammatika", icon: "🧩", bar: "from-amber-500 to-orange-500" },
+  { key: "fluency", label: "Ravonlik", icon: "message" },
+  { key: "vocabulary", label: "Lug'at boyligi", icon: "book" },
+  { key: "grammar", label: "Grammatika", icon: "sparkles" },
 ];
 
 const TYPE_LABEL = {
@@ -14,20 +15,21 @@ const TYPE_LABEL = {
 
 function ScoreBar({ metric, value }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+    <div className="surface rounded-xl p-4">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-          {metric.icon} {metric.label}
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-zinc-500">
+          <Icon name={metric.icon} size={11} />
+          {metric.label}
         </span>
-        <span className="text-lg font-extrabold text-slate-900 dark:text-white">{value}</span>
+        <span className="text-[15px] font-semibold tabular-nums text-zinc-100">{value}</span>
       </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
         <div
-          className={`h-full rounded-full bg-gradient-to-r ${metric.bar} transition-all duration-700`}
+          className="h-full rounded-full bg-zinc-300 transition-all duration-700"
           style={{ width: `${Math.max(4, Math.min(100, value))}%` }}
         />
       </div>
-      <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">100 ballik tizim</p>
+      <p className="mt-1.5 text-[9px] text-zinc-600">100 ballik tizim</p>
     </div>
   );
 }
@@ -45,19 +47,17 @@ export default function PostCallReport({
 }) {
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="flex flex-col items-center rounded-3xl border border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
-          <span className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
-          <h2 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
-            Aylin Hoca hisobotni tayyorlayapti…
-          </h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      <div className="fade-up mx-auto max-w-3xl space-y-3">
+        <div className="surface flex flex-col items-center rounded-2xl px-6 py-14 text-center">
+          <span className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-100" />
+          <h2 className="mt-4 text-[15px] font-medium text-zinc-200">Hisobot tayyorlanmoqda</h2>
+          <p className="mt-1 max-w-sm text-[11px] leading-relaxed text-zinc-500">
             Suhbat tahlil qilinmoqda: ravonlik, lug&apos;at va grammatika baholanmoqda.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="h-24 animate-pulse rounded-xl border border-white/[0.05] bg-white/[0.02]" />
           ))}
         </div>
       </div>
@@ -66,23 +66,28 @@ export default function PostCallReport({
 
   if (error && !report) {
     return (
-      <div className="rounded-3xl border border-rose-300 bg-rose-50 p-6 text-center dark:border-rose-900 dark:bg-rose-950/40">
-        <p className="text-2xl">😕</p>
-        <h2 className="mt-2 font-extrabold text-rose-900 dark:text-rose-200">Hisobot yaratilmadi</h2>
-        <p className="mt-1 text-sm text-rose-800 dark:text-rose-300">{error}</p>
-        <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
-          <button
-            onClick={onRetry}
-            className="rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-500"
-          >
-            🔄 Qayta urinish
-          </button>
-          <button
-            onClick={onExit}
-            className="rounded-xl border border-rose-300 px-5 py-2.5 text-sm font-bold text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950"
-          >
-            ← Simulyator
-          </button>
+      <div className="fade-up mx-auto max-w-lg">
+        <div className="surface rounded-2xl px-6 py-10 text-center">
+          <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-zinc-400">
+            <Icon name="alert" size={17} />
+          </span>
+          <h2 className="mt-4 text-[15px] font-medium text-zinc-200">Hisobot yaratilmadi</h2>
+          <p className="mx-auto mt-1.5 max-w-sm text-[11px] leading-relaxed text-zinc-500">{error}</p>
+          <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
+            <button
+              onClick={onRetry}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-4 py-2.5 text-[11px] font-semibold text-zinc-900 transition hover:bg-white"
+            >
+              <Icon name="refresh" size={12} />
+              Qayta urinish
+            </button>
+            <button
+              onClick={onExit}
+              className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 text-[11px] font-medium text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-200"
+            >
+              Studio
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -92,81 +97,79 @@ export default function PostCallReport({
   const scores = report.scores || {};
 
   return (
-    <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-6 text-white shadow-2xl shadow-indigo-500/25 sm:p-8">
-        <div className="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+    <div className="fade-up mx-auto max-w-3xl space-y-3">
+      <section className="surface rounded-2xl p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wide backdrop-blur">
-              📊 Qo&apos;ng&apos;iroq hisoboti
-            </span>
-            <h2 className="mt-3 text-2xl font-extrabold">Natijalar va baholash</h2>
-            <p className="mt-1 text-sm text-white/80">{report.scenario || "Aylin Hoca bilan suhbat"}</p>
+          <div className="min-w-0">
+            <p className="eyebrow">Session report</p>
+            <h1 className="mt-2 text-[24px] font-semibold tracking-[-0.03em] text-zinc-50">Suhbat natijasi</h1>
+            <p className="mt-1 text-[11px] text-zinc-500">{report.scenario || "Aylin Hoca bilan suhbat"}</p>
           </div>
-          <div className="rounded-2xl bg-white/15 px-4 py-3 text-center backdrop-blur">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-white/70">CEFR daraja</p>
-            <p className="text-4xl font-black leading-none">{report.cefr}</p>
-            <p className="mt-1 text-[10px] text-white/70">
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-center">
+            <p className="text-[9px] font-medium uppercase tracking-[0.14em] text-zinc-600">CEFR</p>
+            <p className="mt-1 text-[30px] font-semibold leading-none tracking-[-0.04em] text-zinc-50">{report.cefr}</p>
+            <p className="mt-1.5 text-[9px] text-zinc-600">
               {report.source === "ai" ? "AI tahlili" : "Lokal hisob"}
             </p>
           </div>
         </div>
         {report.summary_uz && (
-          <p className="relative mt-4 max-w-2xl text-sm leading-relaxed text-white/90">{report.summary_uz}</p>
+          <p className="mt-4 border-t border-white/[0.06] pt-3 text-[12px] leading-relaxed text-zinc-400">
+            {report.summary_uz}
+          </p>
         )}
-      </div>
+      </section>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        {METRICS.map((m) => (
-          <ScoreBar key={m.key} metric={m} value={scores[m.key] ?? 0} />
+      <div className="grid gap-2.5 sm:grid-cols-3">
+        {METRICS.map((metric) => (
+          <ScoreBar key={metric.key} metric={metric} value={scores[metric.key] ?? 0} />
         ))}
       </div>
 
       {report.strengths_uz?.length > 0 && (
-        <div className="rounded-3xl border border-emerald-200 bg-emerald-50/70 p-5 dark:border-emerald-900/60 dark:bg-emerald-950/30">
-          <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200">💪 Kuchli tomonlaringiz</h3>
-          <ul className="mt-3 space-y-2">
-            {report.strengths_uz.map((s, i) => (
-              <li key={i} className="flex gap-2 text-sm text-emerald-900 dark:text-emerald-200">
-                <span>✅</span>
-                <span>{s}</span>
+        <section className="surface rounded-2xl p-5">
+          <h3 className="text-[13px] font-medium text-zinc-200">Kuchli tomonlar</h3>
+          <ul className="mt-2.5 space-y-1.5">
+            {report.strengths_uz.map((strength, index) => (
+              <li key={index} className="flex items-start gap-2 text-[11px] leading-relaxed text-zinc-400">
+                <Icon name="check" size={12} className="mt-0.5 shrink-0 text-zinc-300" />
+                {strength}
               </li>
             ))}
           </ul>
-        </div>
+        </section>
       )}
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <section className="surface rounded-2xl p-5">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="font-extrabold text-slate-900 dark:text-white">
-            ❌ Tuzatish kerak bo&apos;lgan xatolar
-          </h3>
-          <span className="rounded-full bg-rose-100 px-2.5 py-1 text-[11px] font-bold text-rose-600 dark:bg-rose-950/50 dark:text-rose-300">
-            {report.mistakes?.length || 0} ta
+          <h3 className="text-[13px] font-medium text-zinc-200">Tuzatish kerak bo&apos;lgan xatolar</h3>
+          <span className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[10px] tabular-nums text-zinc-500">
+            {report.mistakes?.length || 0}
           </span>
         </div>
         {!report.mistakes?.length ? (
-          <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">
-            🎉 Jiddiy xato topilmadi — ajoyib natija!
-          </p>
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 text-[11px] text-zinc-400">
+            <Icon name="checkCircle" size={13} className="text-zinc-300" />
+            Jiddiy xato topilmadi — javob aniq va tabiiy.
+          </div>
         ) : (
-          <ul className="mt-3 space-y-3">
-            {report.mistakes.map((m, i) => (
-              <li key={i} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+          <ul className="mt-3 space-y-2">
+            {report.mistakes.map((mistake, index) => (
+              <li key={index} className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-3.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                    {TYPE_LABEL[m.type] || "Grammatika"}
+                  <span className="rounded border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[9px] font-medium text-zinc-500">
+                    {TYPE_LABEL[mistake.type] || "Grammatika"}
                   </span>
-                  <span className="text-sm text-rose-500 line-through">{m.wrong}</span>
-                  <span className="text-slate-400">→</span>
-                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{m.correct}</span>
+                  <span className="text-[12px] text-zinc-600 line-through">{mistake.wrong}</span>
+                  <Icon name="arrowRight" size={10} className="text-zinc-700" />
+                  <span className="text-[12px] font-medium text-zinc-100">{mistake.correct}</span>
                   <span className="ml-auto">
                     <SaveButton
                       item={{
-                        tr: m.correct,
-                        uz: m.explanation_uz,
-                        wrong: m.wrong,
-                        type: m.type,
+                        tr: mistake.correct,
+                        uz: mistake.explanation_uz,
+                        wrong: mistake.wrong,
+                        type: mistake.type,
                         source: report.scenario,
                       }}
                       vocab={vocab}
@@ -174,60 +177,67 @@ export default function PostCallReport({
                     />
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">💡 {m.explanation_uz}</p>
+                <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{mistake.explanation_uz}</p>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </section>
 
-      <div className="rounded-3xl border border-indigo-200 bg-indigo-50/70 p-5 dark:border-indigo-900/60 dark:bg-indigo-950/30">
-        <h3 className="font-extrabold text-indigo-900 dark:text-indigo-200">✨ Foydali iboralar</h3>
-        <p className="text-xs text-indigo-700/70 dark:text-indigo-300/70">
-          Suhbatda ishlatish mumkin bo&apos;lgan tabiiy turkcha iboralar
-        </p>
-        <ul className="mt-3 space-y-2">
-          {(report.phrases || []).map((p, i) => (
-            <li
-              key={i}
-              className="flex flex-wrap items-center gap-2 rounded-2xl border border-indigo-200/70 bg-white/70 p-3 dark:border-indigo-900/60 dark:bg-slate-900/60"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-slate-900 dark:text-white">{p.tr}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">🇺🇿 {p.uz}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => playTTS?.(p.tr)}
-                className="rounded-full bg-indigo-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-indigo-500"
-                title="Tinglash"
+      {(report.phrases || []).length > 0 && (
+        <section className="surface rounded-2xl p-5">
+          <h3 className="text-[13px] font-medium text-zinc-200">Foydali iboralar</h3>
+          <p className="mt-0.5 text-[10px] text-zinc-600">Suhbatda ishlatish mumkin bo&apos;lgan tabiiy iboralar</p>
+          <ul className="mt-3 space-y-1.5">
+            {report.phrases.map((phrase, index) => (
+              <li
+                key={index}
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2"
               >
-                🔊
-              </button>
-              <SaveButton item={{ tr: p.tr, uz: p.uz, type: "phrase", source: report.scenario }} vocab={vocab} compact />
-            </li>
-          ))}
-        </ul>
-      </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-medium text-zinc-200">{phrase.tr}</p>
+                  <p className="mt-0.5 text-[10px] text-zinc-500">{phrase.uz}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => playTTS?.(phrase.tr)}
+                  className="rounded-md p-1.5 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
+                  title="Tinglash"
+                  aria-label="Tinglash"
+                >
+                  <Icon name="volume" size={13} />
+                </button>
+                <SaveButton
+                  item={{ tr: phrase.tr, uz: phrase.uz, type: "phrase", source: report.scenario }}
+                  vocab={vocab}
+                  compact
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="grid gap-2 sm:grid-cols-3">
         <button
           onClick={onRestart}
-          className="rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-emerald-500/20 hover:from-emerald-400 hover:to-teal-500"
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-4 py-3 text-[12px] font-semibold text-zinc-900 transition hover:bg-white"
         >
-          🔁 Yana qo&apos;ng&apos;iroq
+          <Icon name="rotate" size={13} />
+          Yana qo&apos;ng&apos;iroq
         </button>
         <button
           onClick={onVocab}
-          className="rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-amber-500/20 hover:from-amber-400 hover:to-orange-400"
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-[12px] font-medium text-zinc-300 transition hover:bg-white/[0.08]"
         >
-          📚 Lug&apos;atni ochish
+          <Icon name="book" size={13} />
+          Lug&apos;atni ochish
         </button>
         <button
           onClick={onExit}
-          className="rounded-2xl border border-slate-200 px-5 py-3.5 text-sm font-bold text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3 text-[12px] font-medium text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-300"
         >
-          ← Simulyator
+          Studio
         </button>
       </div>
     </div>

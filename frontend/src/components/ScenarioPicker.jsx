@@ -1,5 +1,14 @@
 import GlowingOrb from "./GlowingOrb";
 import SpeedControl from "./SpeedControl";
+import Icon from "./Icons";
+
+const SCENARIO_ICONS = {
+  cafe: "coffee",
+  bazaar: "bag",
+  airport: "plane",
+  tomer: "graduation",
+  free: "message",
+};
 
 export default function ScenarioPicker({
   scenarios,
@@ -9,38 +18,41 @@ export default function ScenarioPicker({
   onBack,
   loading,
   starting,
-  error,
   speed = 1,
   setSpeed,
 }) {
   return (
-    <div className="space-y-5">
-      <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.035] p-6 shadow-[0_30px_100px_-40px_rgba(124,58,237,.5)] backdrop-blur-2xl sm:p-8">
-        <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-fuchsia-500/20 blur-[90px]" />
-        <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-sky-500/15 blur-[90px]" />
-        <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:gap-8">
-          <GlowingOrb size="sm" mode="idle" />
-          <div className="flex-1 text-center sm:text-left">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-white/50">
-              <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400 shadow-[0_0_10px_rgba(232,121,249,.9)]" />
-              AI voice call · premium
-            </span>
-            <h2 className="mt-3 text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-4xl">
+    <div className="fade-up space-y-5">
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-1.5 text-[12px] font-medium text-zinc-500 transition hover:text-zinc-200"
+      >
+        <Icon name="arrowLeft" size={14} />
+        Studio
+      </button>
+
+      <section className="surface relative overflow-hidden rounded-2xl p-5 sm:p-7">
+        <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:gap-6 sm:text-left">
+          <div className="shrink-0">
+            <GlowingOrb size="sm" mode="idle" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="eyebrow">Voice session</p>
+            <h2 className="mt-2 text-[26px] font-semibold leading-[1.1] tracking-[-0.035em] text-zinc-50 sm:text-[30px]">
               Aylin Hoca bilan
-              <br />
-              <span className="bg-gradient-to-r from-fuchsia-300 via-violet-300 to-sky-300 bg-clip-text text-transparent">
-                jonli suhbat
-              </span>
+              <br className="hidden sm:block" />
+              <span className="text-zinc-500"> jonli suhbat</span>
             </h2>
-            <p className="mt-3 max-w-md text-[13px] leading-relaxed text-white/45">
-              Mavzuni tanlang — Aylin shu vaziyatga mos rol o&apos;ynaydi. Mikrofon uzluksiz
-              tinglaydi: gapirib bo&apos;lib <b className="text-white/70">1.5 soniya</b> jim
-              tursangiz javob avtomatik yuboriladi.
+            <p className="mx-auto mt-2.5 max-w-md text-[12px] leading-relaxed text-zinc-500 sm:mx-0">
+              Mavzuni tanlang — Aylin shu vaziyatga mos rol o&apos;ynaydi. Gapirib bo&apos;lib 1.5 soniya
+              jim tursangiz, javob avtomatik yuboriladi.
             </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-2 text-[10px] font-semibold text-white/40 sm:justify-start">
-              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1">5 stsenariy</span>
-              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1">Hands-free</span>
-              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1">Emel Neural</span>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-zinc-600 sm:justify-start">
+              <span>5 stsenariy</span>
+              <span className="h-0.5 w-0.5 rounded-full bg-zinc-700" />
+              <span>Hands-free</span>
+              <span className="h-0.5 w-0.5 rounded-full bg-zinc-700" />
+              <span>Emel Neural</span>
             </div>
           </div>
         </div>
@@ -48,73 +60,78 @@ export default function ScenarioPicker({
 
       <div className="flex items-end justify-between gap-3 px-1">
         <div>
-          <h3 className="text-lg font-extrabold tracking-tight text-white">Mavzuni tanlang</h3>
-          <p className="text-xs text-white/35">Har bir stsenariy o&apos;z darajasi va roliga ega</p>
+          <h3 className="text-[14px] font-medium tracking-tight text-zinc-100">Mavzuni tanlang</h3>
+          <p className="mt-0.5 text-[11px] text-zinc-500">Har bir stsenariyning o&apos;z darajasi va roli bor</p>
         </div>
-        <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-bold text-white/40">
-          {scenarios.length || 5} ta
-        </span>
+        <span className="text-[10px] tabular-nums text-zinc-600">{scenarios.length || 5} ta</span>
       </div>
 
       {loading ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-36 animate-pulse rounded-[26px] border border-white/[0.06] bg-white/[0.035]" />
+        <div className="grid gap-2.5 sm:grid-cols-2">
+          {[0, 1, 2, 3].map((index) => (
+            <div key={index} className="h-[126px] animate-pulse rounded-2xl border border-white/[0.05] bg-white/[0.02]" />
           ))}
         </div>
-      ) : error ? (
-        <div className="rounded-2xl border border-rose-400/20 bg-rose-500/[0.08] p-4 text-sm text-rose-200">
-          {error}
-        </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {scenarios.map((s) => {
-            const active = selected === s.id;
+        <div className="grid gap-2.5 sm:grid-cols-2">
+          {scenarios.map((scenario) => {
+            const active = selected === scenario.id;
+            const icon = SCENARIO_ICONS[scenario.id] || "message";
             return (
               <button
-                key={s.id}
+                key={scenario.id}
                 type="button"
-                onClick={() => onSelect(s.id)}
-                className={`group relative overflow-hidden rounded-[26px] border p-4 text-left backdrop-blur-xl transition duration-300 ${
+                onClick={() => onSelect(scenario.id)}
+                aria-pressed={active}
+                className={`group relative rounded-2xl border p-4 text-left transition duration-200 ${
                   active
-                    ? "border-fuchsia-400/40 bg-fuchsia-500/[0.08] shadow-[0_20px_60px_-30px_rgba(217,70,239,.9)]"
-                    : "border-white/[0.07] bg-white/[0.035] hover:border-white/20 hover:bg-white/[0.06]"
+                    ? "border-white/25 bg-white/[0.07]"
+                    : "border-white/[0.07] bg-white/[0.025] hover:border-white/15 hover:bg-white/[0.045]"
                 }`}
               >
-                {active && (
-                  <span className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-fuchsia-500/25 blur-3xl" />
-                )}
-                <div className="relative flex items-start gap-3">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.06] text-2xl">
-                    {s.emoji}
+                <div className="flex items-start gap-3">
+                  <span
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition ${
+                      active
+                        ? "border-white/20 bg-white/[0.1] text-zinc-100"
+                        : "border-white/[0.08] bg-white/[0.03] text-zinc-500 group-hover:text-zinc-300"
+                    }`}
+                  >
+                    <Icon name={icon} size={17} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-bold tracking-tight text-white">{s.title_uz}</p>
-                      <span className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[9px] font-bold text-white/40">
-                        {s.level}
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-[13px] font-medium tracking-tight text-zinc-100">
+                        {scenario.title_uz}
+                      </p>
+                      <span className="shrink-0 text-[9px] font-medium tabular-nums text-zinc-600">
+                        {scenario.level}
                       </span>
                     </div>
-                    <p className="mt-0.5 truncate text-[11px] text-white/30">{s.title_tr}</p>
+                    <p className="mt-0.5 truncate text-[10px] text-zinc-600">{scenario.title_tr}</p>
                   </div>
-                  {active && (
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gradient-to-br from-fuchsia-400 to-violet-500 text-[11px] text-white shadow-[0_0_20px_rgba(217,70,239,.6)]">
-                      ✓
-                    </span>
-                  )}
+                  <span
+                    className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border transition ${
+                      active
+                        ? "border-zinc-100 bg-zinc-100 text-zinc-900"
+                        : "border-white/10 text-transparent"
+                    }`}
+                  >
+                    <Icon name="check" size={11} strokeWidth={2.2} />
+                  </span>
                 </div>
-                <p className="relative mt-2.5 line-clamp-2 text-xs leading-relaxed text-white/45">{s.desc_uz}</p>
-                <p className="relative mt-2 truncate text-[11px] italic text-fuchsia-200/60">“{s.opening_tr}”</p>
+                <p className="mt-2.5 line-clamp-2 text-[11px] leading-relaxed text-zinc-500">{scenario.desc_uz}</p>
+                <p className="mt-2 truncate text-[10px] italic text-zinc-600">“{scenario.opening_tr}”</p>
               </button>
             );
           })}
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-white/10 bg-white/[0.035] p-4 backdrop-blur-xl">
+      <div className="surface flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3">
         <div>
-          <p className="text-xs font-extrabold text-white/80">Aylin Hocaning tezligi</p>
-          <p className="text-[10px] text-white/30">Yangi boshlovchilar uchun 0.8x tavsiya etiladi</p>
+          <p className="text-[12px] font-medium text-zinc-300">Ovoz tezligi</p>
+          <p className="mt-0.5 text-[10px] text-zinc-600">Yangi boshlovchilar uchun 0.8x</p>
         </div>
         <SpeedControl value={speed} onChange={setSpeed} />
       </div>
@@ -124,20 +141,29 @@ export default function ScenarioPicker({
           type="button"
           onClick={onStart}
           disabled={!selected || loading || starting}
-          className="group relative flex-1 overflow-hidden rounded-2xl bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500 px-6 py-4 text-base font-extrabold text-white shadow-[0_20px_60px_-20px_rgba(217,70,239,.8)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-zinc-100 px-5 py-3.5 text-[13px] font-semibold text-zinc-900 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-40" />
-          <span className="relative">{starting ? "Ulanyapti…" : "Qo'ng'iroqni boshlash"}</span>
+          {starting ? (
+            <>
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-400 border-t-zinc-900" />
+              Ulanmoqda
+            </>
+          ) : (
+            <>
+              <Icon name="phone" size={15} />
+              Qo&apos;ng&apos;iroqni boshlash
+            </>
+          )}
         </button>
         <button
           type="button"
           onClick={onBack}
-          className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-4 text-sm font-bold text-white/50 transition hover:bg-white/[0.08] hover:text-white/80"
+          className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3.5 text-[13px] font-medium text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-200"
         >
-          ← Studio
+          Bekor qilish
         </button>
       </div>
-      <p className="text-center text-[10px] leading-relaxed text-white/25">
+      <p className="pb-2 text-center text-[10px] leading-relaxed text-zinc-600">
         Mikrofon ruxsatini bering · Chrome yoki Edge tavsiya etiladi · Aylin faqat Emel Neural ovozida gapiradi
       </p>
     </div>

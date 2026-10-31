@@ -1,6 +1,8 @@
 import Waveform from "./Waveform";
+import Icon from "./Icons";
 
-const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+const fmt = (s) =>
+  `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
 export default function RecorderBar({
   supported,
@@ -16,69 +18,82 @@ export default function RecorderBar({
   showManual,
   setShowManual,
 }) {
-  const hasText = Boolean(manualText.trim());
-
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-emerald-500/5 sm:p-6 dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex flex-col items-center gap-5 sm:flex-row">
+    <section className="surface mt-3 rounded-2xl p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <button
           onClick={onToggle}
           disabled={disabled}
           title={recording ? "To'xtatish" : "Gapirishni boshlash"}
-          className={`relative grid h-20 w-20 shrink-0 place-items-center rounded-full text-3xl text-white transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
-            recording
-              ? "mic-pulse bg-gradient-to-br from-rose-500 to-red-600"
-              : "bg-gradient-to-br from-indigo-500 to-fuchsia-600 hover:scale-105"
+          aria-label={recording ? "Yozishni to'xtatish" : "Gapirishni boshlash"}
+          className={`relative grid h-16 w-16 shrink-0 place-items-center rounded-full text-zinc-900 transition disabled:cursor-not-allowed disabled:opacity-40 ${
+            recording ? "mic-pulse bg-white" : "bg-zinc-100 hover:bg-white"
           }`}
         >
-          {recording ? "⏹" : "🎙️"}
+          <Icon name={recording ? "square" : "mic"} size={recording ? 18 : 22} strokeWidth={recording ? 2 : 1.8} />
         </button>
 
-        <div className="flex-1">
-          <div className="flex items-baseline gap-3">
-            <span className={`text-2xl font-extrabold tabular-nums ${recording ? "text-rose-500" : "text-slate-300 dark:text-slate-600"}`}>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2.5">
+            <span className="text-[20px] font-semibold tabular-nums tracking-tight text-zinc-100">
               {fmt(seconds)}
             </span>
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              {recording ? "Yozib olinmoqda…" : supported ? "Mikrofon tayyor" : "Brauzer ovozni tanimaydi — matn kiriting"}
+            <span className="truncate text-[11px] text-zinc-500">
+              {recording
+                ? "Yozib olinmoqda"
+                : supported
+                  ? "Mikrofon tayyor"
+                  : "Ovoz aniqlanmaydi — matn kiriting"}
             </span>
           </div>
-          <Waveform getAnalyser={getAnalyser} active={recording} mode={recording ? "listening" : "idle"} />
+          <div className="mt-1 h-12 opacity-70">
+            <Waveform getAnalyser={getAnalyser} active={recording} mode={recording ? "listening" : "idle"} />
+          </div>
           {recording && interim && (
-            <p className="italic text-sm text-indigo-500 dark:text-indigo-300">{interim}…</p>
+            <p className="mt-1 line-clamp-2 text-[12px] italic text-zinc-400">{interim}…</p>
           )}
         </div>
 
         <button
           onClick={onSubmit}
           disabled={disabled || recording}
-          className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 transition hover:from-indigo-500 hover:to-fuchsia-500 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+          className="w-full shrink-0 rounded-lg border border-white/10 bg-white/[0.06] px-4 py-2.5 text-[12px] font-medium text-zinc-200 transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-35 sm:w-auto"
         >
-          ✅ Gapirishni tugatish
+          Javobni yuborish
         </button>
       </div>
 
       {showManual ? (
-        <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-          <label className="mb-2 block text-xs font-semibold text-slate-500 dark:text-slate-400">
-            Mikrofon ishlamasa javobingni yozib yubor — turkchada:
+        <div className="mt-4 border-t border-white/[0.06] pt-4">
+          <label className="mb-2 block text-[11px] font-medium text-zinc-500">
+            Mikrofon ishlamasa, javobingizni turkchada yozing
           </label>
           <textarea
             value={manualText}
-            onChange={(e) => setManualText(e.target.value)}
+            onChange={(event) => setManualText(event.target.value)}
             rows={2}
-            placeholder="Ben daha yeni turkce ogrenmeye basladim ama cok istiyorum..."
-            className="w-full resize-none rounded-xl border border-slate-300 bg-transparent px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:text-white"
+            placeholder="Ben daha yeni Türkçe öğrenmeye başladım ama çok istiyorum..."
+            className="w-full resize-none rounded-lg border border-white/10 bg-zinc-950/50 px-3 py-2.5 text-[13px] text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-white/20"
           />
+          <div className="mt-2 flex justify-end">
+            <button
+              onClick={() => onSubmit()}
+              disabled={!manualText.trim() || disabled}
+              className="rounded-lg bg-zinc-100 px-3.5 py-2 text-[11px] font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-40"
+            >
+              Yuborish
+            </button>
+          </div>
         </div>
       ) : (
         <button
           onClick={() => setShowManual(true)}
-          className="mt-3 block text-xs font-medium text-indigo-500 hover:underline dark:text-indigo-400"
+          className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 transition hover:text-zinc-300"
         >
-          📝 Yozib yuborish (mikrofon ishlamasa)
+          <Icon name="file" size={12} />
+          Yozib yuborish
         </button>
       )}
-    </div>
+    </section>
   );
 }

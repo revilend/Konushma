@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Icon from "./Icons";
 
 export default function ApiKeyModal({ open, onClose, apiKey, onSaved }) {
   const [value, setValue] = useState("");
@@ -18,7 +19,7 @@ export default function ApiKeyModal({ open, onClose, apiKey, onSaved }) {
   const save = () => {
     const clean = value.trim();
     if (clean.length < 20) {
-      setError("Kalit juda qisqa. Gemini API kaliti odatda AIza... bilan boshlanadi va ~39 belgidan iborat.");
+      setError("Kalit juda qisqa. Gemini kaliti odatda AIza... bilan boshlanadi.");
       return;
     }
     apiKey.save(clean);
@@ -27,103 +28,101 @@ export default function ApiKeyModal({ open, onClose, apiKey, onSaved }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button
-        aria-label="Yopish"
-        onClick={onClose}
-        className="absolute inset-0 bg-black/70 backdrop-blur-md"
-      />
-      <div className="relative w-full max-w-md overflow-hidden rounded-[30px] border border-white/10 bg-[#0C0E16]/95 p-6 shadow-[0_40px_120px_-20px_rgba(124,58,237,.55)] backdrop-blur-2xl">
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-64 -translate-x-1/2 rounded-full bg-fuchsia-500/25 blur-3xl" />
-        <div className="relative">
-          <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-white/[0.06] text-xl">
-              ⚙️
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <button aria-label="Yopish" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#121215]/95 p-5 shadow-[0_30px_100px_-20px_rgba(0,0,0,.9)] backdrop-blur-xl sm:p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-300">
+              <Icon name="key" size={16} />
             </span>
             <div>
-              <h2 className="text-lg font-extrabold text-white">Gemini API kaliti</h2>
-              <p className="text-[11px] text-white/45">Aylin Hocani jonlantirish uchun</p>
+              <h2 className="text-[15px] font-semibold tracking-tight text-zinc-100">API kalit</h2>
+              <p className="text-[11px] text-zinc-500">Gemini orqali Aylinni yoqing</p>
             </div>
           </div>
-
-          <p className="mt-4 text-sm leading-relaxed text-white/60">
-            Kalitni{" "}
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noreferrer"
-              className="font-semibold text-fuchsia-300 underline decoration-fuchsia-400/40 underline-offset-2 hover:text-fuchsia-200"
-            >
-              Google AI Studio
-            </a>{" "}
-            dan bepul oling. Kalit faqat shu brauzerda saqlanadi va har bir AI so‘rovida backendga
-            yuboriladi — serverda saqlanmaydi, `.env` tahrirlash shart emas.
-          </p>
-
-          <label className="mt-5 block text-[11px] font-bold uppercase tracking-wider text-white/40">
-            API kalit
-          </label>
-          <div className="mt-1.5 flex items-center gap-2 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 focus-within:border-fuchsia-400/50">
-            <input
-              type={show ? "text" : "password"}
-              value={value}
-              onChange={(e) => {
-                setValue(e.target.value);
-                setError("");
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") save();
-              }}
-              placeholder="AIzaSy..."
-              autoComplete="off"
-              spellCheck={false}
-              className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/25"
-            />
-            <button
-              type="button"
-              onClick={() => setShow((v) => !v)}
-              className="text-xs font-bold text-white/40 hover:text-white/80"
-            >
-              {show ? "Yashirish" : "Ko‘rsatish"}
-            </button>
-          </div>
-
-          {error && <p className="mt-2 text-xs text-rose-300">{error}</p>}
-
-          <button
-            onClick={save}
-            className="mt-5 w-full rounded-2xl bg-gradient-to-r from-fuchsia-500 via-violet-500 to-indigo-500 px-5 py-3.5 text-sm font-extrabold text-white shadow-[0_10px_40px_-10px_rgba(217,70,239,.7)] transition hover:brightness-110"
-          >
-            Saqlash va boshlash
+          <button onClick={onClose} className="rounded-md p-1 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200" aria-label="Yopish">
+            <Icon name="x" size={16} />
           </button>
-
-          <div className="mt-3 flex items-center justify-between">
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noreferrer"
-              className="text-[11px] font-semibold text-white/40 hover:text-white/70"
-            >
-              Kalit olish →
-            </a>
-            {apiKey.hasKey && (
-              <button
-                onClick={() => {
-                  apiKey.clear();
-                  onSaved?.("");
-                  onClose?.();
-                }}
-                className="text-[11px] font-semibold text-rose-300/80 hover:text-rose-200"
-              >
-                Kalitni o‘chirish
-              </button>
-            )}
-          </div>
-
-          <p className="mt-4 border-t border-white/5 pt-3 text-[10px] leading-relaxed text-white/30">
-            🔒 Kalit hech qanday serverda saqlanmaydi. Umumiy kompyuterda ishlatmang.
-          </p>
         </div>
+
+        <p className="mt-4 text-[12px] leading-relaxed text-zinc-400">
+          Kalitni{" "}
+          <a
+            href="https://aistudio.google.com/app/apikey"
+            target="_blank"
+            rel="noreferrer"
+            className="text-zinc-200 underline decoration-zinc-600 underline-offset-2 hover:decoration-zinc-300"
+          >
+            Google AI Studio
+          </a>{" "}
+          dan oling. U faqat shu brauzerda saqlanadi va AI so‘rovlarida yuboriladi. Serverda saqlanmaydi.
+        </p>
+
+        <label className="mt-5 block text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+          Gemini API key
+        </label>
+        <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950/60 px-3 py-2.5 focus-within:border-white/25">
+          <input
+            type={show ? "text" : "password"}
+            value={value}
+            onChange={(event) => {
+              setValue(event.target.value);
+              setError("");
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") save();
+            }}
+            placeholder="AIzaSy..."
+            autoComplete="off"
+            spellCheck={false}
+            className="min-w-0 flex-1 bg-transparent text-[13px] text-zinc-100 outline-none placeholder:text-zinc-600"
+          />
+          <button
+            type="button"
+            onClick={() => setShow((current) => !current)}
+            className="rounded p-1 text-zinc-500 transition hover:text-zinc-200"
+            aria-label={show ? "Yashirish" : "Ko‘rsatish"}
+          >
+            <Icon name={show ? "eyeOff" : "eye"} size={15} />
+          </button>
+        </div>
+        {error && <p className="mt-2 text-[11px] text-zinc-400">{error}</p>}
+
+        <button
+          onClick={save}
+          className="mt-5 w-full rounded-lg bg-zinc-100 px-4 py-2.5 text-[13px] font-semibold text-zinc-900 transition hover:bg-white"
+        >
+          Saqlash
+        </button>
+
+        <div className="mt-3 flex items-center justify-between">
+          <a
+            href="https://aistudio.google.com/app/apikey"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-[11px] text-zinc-500 transition hover:text-zinc-300"
+          >
+            Kalit olish <Icon name="external" size={11} />
+          </a>
+          {apiKey.hasKey && (
+            <button
+              onClick={() => {
+                apiKey.clear();
+                onSaved?.("");
+                onClose?.();
+              }}
+              className="text-[11px] text-zinc-500 transition hover:text-zinc-300"
+            >
+              Kalitni o‘chirish
+            </button>
+          )}
+        </div>
+
+        <p className="mt-4 flex items-start gap-1.5 border-t border-white/[0.06] pt-3 text-[10px] leading-relaxed text-zinc-600">
+          <Icon name="lock" size={11} className="mt-0.5 shrink-0" />
+          Umumiy kompyuterda kalitni saqlamang.
+        </p>
       </div>
     </div>
   );

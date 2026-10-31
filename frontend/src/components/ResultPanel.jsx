@@ -1,66 +1,78 @@
 import SaveButton from "./SaveButton";
+import Icon from "./Icons";
 
 const TYPE_META = {
-  grammar: { icon: "🧩", label: "Grammatika", cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
-  vocabulary: { icon: "📚", label: "Lug'at", cls: "bg-sky-500/10 text-sky-600 dark:text-sky-400" },
-  false_friend: { icon: "⚠️", label: "Soxta do'st!", cls: "bg-rose-500/10 text-rose-600 dark:text-rose-400" },
+  grammar: { icon: "sparkles", label: "Grammatika" },
+  vocabulary: { icon: "book", label: "Lug'at" },
+  false_friend: { icon: "alert", label: "Soxta do'st" },
 };
-
-function levelColor(level = "") {
-  if (level.startsWith("B")) return "from-emerald-500 to-teal-500";
-  if (level.startsWith("A2")) return "from-amber-500 to-orange-500";
-  return "from-rose-500 to-red-500";
-}
 
 export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, busy, vocab, playTTS }) {
   if (!analysis) return null;
   const { level_score, mistakes, model_answer_tr, positive_note_uz, useful_phrases } = analysis;
 
   return (
-    <div className="animate-[fadeIn_.35s_ease] space-y-4">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className={`rounded-3xl bg-gradient-to-br ${levelColor(level_score)} p-5 text-white shadow-lg`}>
-          <p className="text-xs font-semibold uppercase tracking-wide opacity-80">Umumiy baho</p>
-          <p className="mt-1 text-4xl font-extrabold">{level_score}</p>
-          <p className="mt-1 text-xs opacity-80">CEFR daraja ko'rsatkichi</p>
+    <div className="fade-up space-y-3">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="surface rounded-2xl p-5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">Umumiy baho</p>
+          <p className="mt-2 text-[36px] font-semibold leading-none tracking-[-0.04em] text-zinc-50">
+            {level_score}
+          </p>
+          <p className="mt-2 text-[10px] text-zinc-600">CEFR daraja ko&apos;rsatkichi</p>
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:col-span-2 dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            💬 Sen gapirgan javob
-          </p>
-          <p className="mt-1 text-sm text-slate-800 dark:text-slate-300">{analysis.transcription}</p>
+        <div className="surface rounded-2xl p-5 sm:col-span-2">
+          <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+            <Icon name="message" size={12} />
+            Siz gapirgan javob
+          </div>
+          <p className="mt-2 text-[13px] leading-relaxed text-zinc-300">{analysis.transcription}</p>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 dark:border-slate-800 dark:bg-slate-900">
-        <h3 className="font-bold text-slate-900 dark:text-white">❌ Xatolaring tahlili ({mistakes.length})</h3>
+      <div className="surface rounded-2xl p-5">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-[13px] font-medium text-zinc-200">Xatolar tahlili</h3>
+          <span className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[10px] tabular-nums text-zinc-500">
+            {mistakes.length}
+          </span>
+        </div>
+
         {mistakes.length === 0 ? (
-          <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">
-            🎉 Xatoyam yo'q! Ajoyib javob, davom!
-          </p>
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 text-[12px] text-zinc-400">
+            <Icon name="checkCircle" size={14} className="shrink-0 text-zinc-300" />
+            Xato topilmadi — javob aniq va tabiiy.
+          </div>
         ) : (
-          <ul className="mt-4 space-y-3">
-            {mistakes.map((m, i) => {
-              const meta = TYPE_META[m.type] || TYPE_META.grammar;
+          <ul className="mt-3 space-y-2">
+            {mistakes.map((mistake, index) => {
+              const meta = TYPE_META[mistake.type] || TYPE_META.grammar;
               return (
-                <li key={i} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                <li key={index} className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-3.5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${meta.cls}`}>
-                      {meta.icon} {meta.label}
+                    <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[9px] font-medium text-zinc-500">
+                      <Icon name={meta.icon} size={10} />
+                      {meta.label}
                     </span>
-                    <span className="text-sm text-rose-500 line-through">{m.wrong}</span>
-                    <span className="text-sm text-slate-400">→</span>
-                    <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{m.correct}</span>
+                    <span className="text-[12px] text-zinc-500 line-through">{mistake.wrong}</span>
+                    <Icon name="arrowRight" size={11} className="text-zinc-600" />
+                    <span className="text-[12px] font-medium text-zinc-100">{mistake.correct}</span>
                     <span className="ml-auto">
                       <SaveButton
-                        item={{ tr: m.correct, uz: m.explanation_uz, wrong: m.wrong, type: m.type, source: "Simulyator" }}
+                        item={{
+                          tr: mistake.correct,
+                          uz: mistake.explanation_uz,
+                          wrong: mistake.wrong,
+                          type: mistake.type,
+                          source: "Simulyator",
+                        }}
                         vocab={vocab}
                         compact
                       />
                     </span>
                   </div>
-                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">🇺🇿 {m.explanation_uz}</p>
+                  <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{mistake.explanation_uz}</p>
                 </li>
               );
             })}
@@ -68,53 +80,60 @@ export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, 
         )}
       </div>
 
-      <div className="rounded-3xl border border-emerald-200 bg-emerald-50/60 p-5 sm:p-6 dark:border-emerald-900/60 dark:bg-emerald-950/30">
+      <div className="surface rounded-2xl p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <h3 className="font-bold text-emerald-800 dark:text-emerald-300">✅ Qanday aytish kerak edi</h3>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+            <Icon name="checkCircle" size={12} />
+            Qanday aytish kerak edi
+          </div>
+          <div className="flex items-center gap-2">
             <SaveButton
               item={{ tr: model_answer_tr, uz: "Namuna javob", type: "sentence", source: "Simulyator" }}
               vocab={vocab}
+              compact
             />
             <button
               onClick={onPlayAnswer}
               disabled={speaking}
-              className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] font-medium text-zinc-400 transition hover:text-zinc-100 disabled:opacity-50"
             >
-              {speaking ? "🔊…" : "🔊 Tinglash"}
+              <Icon name="volume" size={11} />
+              {speaking ? "O'qilyapti" : "Tinglash"}
             </button>
           </div>
         </div>
-        <p className="mt-2 text-lg font-medium leading-relaxed text-emerald-950 dark:text-emerald-200">
-          {model_answer_tr}
-        </p>
+        <p className="mt-3 text-[15px] font-medium leading-relaxed text-zinc-100">{model_answer_tr}</p>
         {positive_note_uz && (
-          <p className="mt-3 border-t border-emerald-200/70 pt-3 text-sm text-emerald-800 dark:border-emerald-900/60 dark:text-emerald-300">
-            👩‍🏫 {positive_note_uz}
+          <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] leading-relaxed text-zinc-500">
+            {positive_note_uz}
           </p>
         )}
       </div>
 
       {useful_phrases?.length > 0 && (
-        <div className="rounded-3xl border border-indigo-200 bg-indigo-50/60 p-5 dark:border-indigo-900/60 dark:bg-indigo-950/30">
-          <h3 className="font-bold text-indigo-900 dark:text-indigo-200">✨ Foydali iboralar</h3>
-          <ul className="mt-3 space-y-2">
-            {useful_phrases.map((p, i) => (
+        <div className="surface rounded-2xl p-5">
+          <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+            <Icon name="sparkles" size={12} />
+            Foydali iboralar
+          </div>
+          <ul className="mt-3 space-y-1.5">
+            {useful_phrases.map((phrase, index) => (
               <li
-                key={i}
-                className="flex flex-wrap items-center gap-2 rounded-2xl border border-indigo-200/70 bg-white/70 p-3 dark:border-indigo-900/60 dark:bg-slate-900/60"
+                key={index}
+                className="flex flex-wrap items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{p.tr}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">🇺🇿 {p.uz}</p>
+                  <p className="text-[12px] font-medium text-zinc-200">{phrase.tr}</p>
+                  <p className="mt-0.5 text-[10px] text-zinc-500">{phrase.uz}</p>
                 </div>
                 <button
-                  onClick={() => playTTS?.(p.tr)}
-                  className="rounded-full bg-indigo-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-indigo-500"
+                  onClick={() => playTTS?.(phrase.tr)}
+                  className="rounded-md p-1.5 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
+                  aria-label="Tinglash"
                 >
-                  🔊
+                  <Icon name="volume" size={13} />
                 </button>
-                <SaveButton item={{ tr: p.tr, uz: p.uz, type: "phrase", source: "Simulyator" }} vocab={vocab} compact />
+                <SaveButton item={{ tr: phrase.tr, uz: phrase.uz, type: "phrase", source: "Simulyator" }} vocab={vocab} compact />
               </li>
             ))}
           </ul>
@@ -124,9 +143,10 @@ export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, 
       <button
         onClick={onNext}
         disabled={busy}
-        className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 transition hover:from-indigo-500 hover:to-fuchsia-500 disabled:opacity-40"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-5 py-3.5 text-[13px] font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-40"
       >
-        ⏭️ Keyingi savolga o'tish
+        Keyingi savol
+        <Icon name="arrowRight" size={14} />
       </button>
     </div>
   );

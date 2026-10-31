@@ -1,32 +1,30 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Jonli ovoz to'lqini.
- * mode: "speaking" — Aylin gapirayotganda mayin sintetik to'lqin (yashil);
- *       "listening" — mikrofon kuchiga qarab balandlik va rang o'zgaradi;
- *       "idle" — sokin holat.
+ * Monoxrom jonli ovoz to'lqini.
+ * speaking — Aylin gapirganda sokin sintetik to'lqin;
+ * listening — mikrofon kuchiga moslashadi;
+ * idle — deyarli tekis.
  */
 export default function Waveform({ getAnalyser, active = false, mode = "idle" }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(0);
   const smoothRef = useRef([]);
-  const levelRef = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx2d = canvas.getContext("2d");
+    const context = canvas.getContext("2d");
     const bars = 56;
     if (smoothRef.current.length !== bars) smoothRef.current = new Array(bars).fill(0);
-    let t = 0;
+    let tick = 0;
 
     const draw = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = (canvas.width = Math.max(1, canvas.offsetWidth * dpr));
-      const h = (canvas.height = Math.max(1, canvas.offsetHeight * dpr));
-      ctx2d.clearRect(0, 0, w, h);
-      ctx2d.shadowBlur = mode === "speaking" ? 22 : 10;
-      ctx2d.shadowColor = mode === "speaking" ? "rgba(16,185,129,0.45)" : "rgba(99,102,241,0.35)";
+      const width = (canvas.width = Math.max(1, canvas.offsetWidth * dpr));
+      const height = (canvas.height = Math.max(1, canvas.offsetHeight * dpr));
+      context.clearRect(0, 0, width, height);
+      context.shadowBlur = 0;
 
       const analyser = getAnalyser?.();
       let bins = null;
@@ -35,63 +33,47 @@ export default function Waveform({ getAnalyser, active = false, mode = "idle" })
         analyser.getByteFrequencyData(bins);
       }
 
-      let level = 0;
-      if (bins) {
-        for (let i = 0; i < bins.length; i++) level += bins[i];
-        level = level / bins.length / 255;
-      }
-      levelRef.current = levelRef.current * 0.75 + level * 0.25;
-      const liveLevel = levelRef.current;
+      const gap = width / bars;
+      const center = height / 2;
+      const envelope = (index) => Math.sin((Math.PI * index) / (bars - 1)) ** 0.7;
 
-      const gap = w / bars;
-      const center = h / 2;
-      const envelope = (i) => {
-        const x = i / (bars - 1);
-        return Math.sin(Math.PI * x) ** 0.7;
-      };
-
-      for (let i = 0; i < bars; i++) {
-        let v;
+      for (let index = 0; index < bars; index++) {
+        let value;
         if (mode === "speaking" && active) {
-          // Mayin, nafas olayotgan ovoz to'lqini
-          v =
-            0.34 +
-            0.22 * Math.sin(t * 0.09 + i * 0.42) +
-            0.14 * Math.sin(t * 0.16 + i * 0.87) +
-            0.08 * Math.sin(t * 0.05 + i * 1.7);
-          v = Math.max(0.12, Math.min(1, v)) * envelope(i);
+          value =
+            0.32 +
+            0.2 * Math.sin(tick * 0.09 + index * 0.42) +
+            0.12 * Math.sin(tick * 0.16 + index * 0.87);
+          value = Math.max(0.1, Math.min(1, value)) * envelope(index);
         } else if (mode === "listening" && bins) {
-          const idx = Math.floor((i / bars) * (bins.length * 0.45));
-          v = (bins[idx] / 255) * 1.25 * envelope(i);
+          const binIndex = Math.floor((index / bars) * (bins.length * 0.45));
+          value = (bins[binIndex] / 255) * 1.2 * envelope(index);
         } else {
-          v = (0.05 + 0.04 * Math.sin(t * 0.05 + i * 0.3)) * envelope(i);
+          value = (0.045 + 0.03 * Math.sin(tick * 0.05 + index * 0.3)) * envelope(index);
         }
 
-        const prev = smoothRef.current[i] || 0;
-        const eased = prev + (v - prev) * (mode === "listening" ? 0.45 : 0.18);
-        smoothRef.current[i] = eased;
+        const previous = smoothRef.current[index] || 0;
+        const eased = previous + (value - previous) * (mode === "listening" ? 0.42 : 0.16);
+        smoothRef.current[index] = eased;
 
-        const bh = Math.max(h * 0.045, eased * h * 0.9);
-        const x = i * gap + gap * 0.2;
-        const y = center - bh / 2;
-        const barW = gap * 0.6;
+        const barHeight = Math.max(height * 0.04, eased * height * 0.88);
+        const x = index * gap + gap * 0.22;
+        const y = center - barHeight / 2;
+        const barWidth = gap * 0.56;
+        const alpha = mode === "speaking" ? 0.82 : mode === "listening" ? 0.7 : 0.28;
 
-        let hue;
-        if (mode === "speaking") hue = 158 + 26 * Math.sin(t * 0.04 + i * 0.15);
-        else if (mode === "listening") hue = 205 - liveLevel * 160;
-        else hue = 222;
+        const gradient = context.createLinearGradient(x, y, x, y + barHeight);
+        gradient.addColorStop(0, `rgba(250, 250, 250, ${alpha})`);
+        gradient.addColorStop(1, `rgba(161, 161, 170, ${alpha * 0.35})`);
+        context.fillStyle = gradient;
 
-        const grad = ctx2d.createLinearGradient(x, y, x, y + bh);
-        grad.addColorStop(0, `hsl(${hue} 90% 62%)`);
-        grad.addColorStop(1, `hsl(${hue + 42} 88% 55%)`);
-        ctx2d.fillStyle = grad;
-        ctx2d.beginPath();
-        const r = Math.min(barW / 2, gap * 0.3);
-        ctx2d.roundRect(x, y, barW, bh, r);
-        ctx2d.fill();
+        context.beginPath();
+        const radius = Math.min(barWidth / 2, gap * 0.28);
+        context.roundRect(x, y, barWidth, barHeight, radius);
+        context.fill();
       }
 
-      t++;
+      tick += 1;
       rafRef.current = requestAnimationFrame(draw);
     };
 
@@ -99,11 +81,5 @@ export default function Waveform({ getAnalyser, active = false, mode = "idle" })
     return () => cancelAnimationFrame(rafRef.current);
   }, [getAnalyser, active, mode]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className={`wave-canvas h-16 w-full sm:h-20 ${mode === "speaking" ? "opacity-100" : "opacity-90"}`}
-    />
-  );
+  return <canvas ref={canvasRef} aria-hidden="true" className="wave-canvas h-full w-full" />;
 }

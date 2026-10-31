@@ -184,25 +184,28 @@ Tanlangan stsenariy Aylin Hocaning roli va savollariga uzatiladi (`/api/analyze`
 - Lug'at `localStorage`da saqlanadi (server/baza talab qilinmaydi).
 - Alohida **Lug'atim** sahifasida qidirish, tinglash, o'chirish va **🔁 Takrorlash** (flashcard) rejimi.
 
-## 🚀 Vercel'ga deploy (bepul)
+## Vercel'ga deploy (bepul)
 
-Loyiha bitta Vercel loyihasida ishlaydi: React statik fayllar CDN'dan, `/api/*` esa
-FastAPI serverless funksiyasidan beriladi. Alohida backend URL yoki `VITE_API_URL` kerak emas.
+Loyiha bitta Vercel loyihasida **Vercel Services** orqali ishlaydi: Vite frontend va
+FastAPI backend alohida build qilinadi, lekin bitta domenda ochiladi. `/api/*` so'rovlari
+backendga, qolgan barcha so'rovlar frontendga yo'naltiriladi — alohida backend URL yoki
+`VITE_API_URL` kerak emas.
 
 1. [vercel.com/new](https://vercel.com/new) → GitHub repo (`revilend/Konushma`) ni import qiling.
-2. Framework avtomatik aniqlanadi (FastAPI + `index.py`); sozlamalarni o'zgartirmang.
-3. **Environment Variables** bo'limida qo'shing:
-   - `GEMINI_API_KEY` (tavsiya) yoki `OPENAI_API_KEY`
+2. `vercel.json` avtomatik o'qiladi; Framework sozlamasini qo'lda o'zgartirmang.
+3. **Environment Variables** bo'limida (ixtiyoriy) qo'shing:
+   - `GEMINI_API_KEY` yoki `OPENAI_API_KEY` — brauzerdagi API kalit ishlatilmasa
    - `OPENAI_BASE_URL` / `OPENAI_MODEL` — faqat OpenAI-mos variant uchun
 4. **Deploy** bosing.
 
-Deploy fayllari:
+Services konfiguratsiyasi:
 
 | Fayl | Vazifasi |
 |------|----------|
-| `index.py` | Vercel entrypoint — `backend/app` dagi FastAPI `app` ni import qiladi |
-| `requirements.txt` | Python bog'liqliklar (Vercel Python runtime o'rnatadi) |
-| `vercel.json` | Frontend build (`frontend/dist` → `public/`) va funksiya (`maxDuration: 60`) |
+| `frontend/` | Vite service — statik build va SPA |
+| `backend/` | FastAPI service — `app.main:app` entrypoint |
+| `backend/requirements.txt` | Backend Python bog'liqliklari |
+| `vercel.json` | `services` ta'rifi va `/api/(.*)` → `backend` rewritelari |
 | `.vercelignore` | `.venv`, `node_modules`, `.env` va boshqa keraksiz fayllarni yuklamaydi |
 
 Eslatmalar:

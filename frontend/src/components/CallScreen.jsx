@@ -1,30 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
+import { toast } from "../lib/toast";
 import { useCall } from "../lib/useCall";
-import Waveform from "./Waveform";
 import ScenarioPicker from "./ScenarioPicker";
 import PostCallReport from "./PostCallReport";
-import SaveButton from "./SaveButton";
-import SpeedControl from "./SpeedControl";
 import GlowingOrb from "./GlowingOrb";
 import Captions from "./Captions";
 import CallDock from "./CallDock";
+import Icon from "./Icons";
 
 const fmt = (s) =>
   `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-const TYPE_META = {
-  grammar: { icon: "🧩", label: "Grammatika" },
-  vocabulary: { icon: "📚", label: "Lug'at" },
-  false_friend: { icon: "⚠️", label: "Soxta do'st!" },
-};
-
 const STATUS = {
-  listening: { label: "Tinglayapti", dot: "bg-emerald-400" },
-  speaking: { label: "Gapirmoqda", dot: "bg-fuchsia-400" },
-  thinking: { label: "O'ylayapti", dot: "bg-indigo-400" },
-  muted: { label: "Mikrofon o'chirilgan", dot: "bg-rose-400" },
-  idle: { label: "Tayyor", dot: "bg-white/40" },
+  listening: { label: "Tinglayapti", dot: "bg-zinc-100" },
+  speaking: { label: "Gapirmoqda", dot: "bg-zinc-100" },
+  thinking: { label: "O'ylayapti", dot: "bg-zinc-400" },
+  muted: { label: "Mikrofon o'chirilgan", dot: "bg-zinc-600" },
+  idle: { label: "Tayyor", dot: "bg-zinc-600" },
 };
 
 export default function CallScreen({
@@ -36,6 +29,7 @@ export default function CallScreen({
   speed,
   setSpeed,
   onSessionSeconds,
+  onStageChange,
 }) {
   const [scenarios, setScenarios] = useState([]);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
@@ -43,13 +37,10 @@ export default function CallScreen({
   const [stage, setStage] = useState("setup");
   const [history, setHistory] = useState([]);
   const [starting, setStarting] = useState(false);
-  const [error, setError] = useState("");
   const [report, setReport] = useState(null);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState("");
   const [showUz, setShowUz] = useState(false);
-  const [showHints, setShowHints] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
 
   const turnsRef = useRef([]);
   const questionRef = useRef("");
@@ -64,21 +55,24 @@ export default function CallScreen({
   const selected = scenarios.find((s) => s.id === scenarioId) || null;
 
   useEffect(() => {
+    onStageChange?.(stage);
+  }, [stage, onStageChange]);
+
+  useEffect(() => {
     onSessionSecondsRef.current = onSessionSeconds;
   }, [onSessionSeconds]);
 
   const loadScenarios = useCallback(async () => {
     setLoadingScenarios(true);
-    setError("");
     try {
-      const d = await api.scenarios();
-      const list = d.scenarios || [];
+      const data = await api.scenarios();
+      const list = data.scenarios || [];
       setScenarios(list);
       setScenarioId((prev) =>
         list.some((s) => s.id === prev) ? prev : list.find((s) => s.id === "free")?.id || list[0]?.id || ""
       );
     } catch (e) {
-      setError(`Stsenariylar yuklanmadi: ${e.message}`);
+      toast(`Stsenariylar yuklanmadi: ${e.message}`, "error");
     } finally {
       setLoadingScenarios(false);
     }
@@ -91,31 +85,29 @@ export default function CallScreen({
   const onTurn = useCallback(async (text) => {
     const sc = scenarioRef.current;
     try {
-      const a = await api.analyze(
+      const data = await api.analyze(
         text,
         { tr: questionRef.current || "Jonli suhbat", uz: "" },
         "call",
         sc?.id || ""
       );
       const turn = {
-        user: a.transcription || text,
-        aylin: a.next_question_tr || "",
-        aylin_uz: a.next_question_uz || "",
-        hints: a.answer_hints || [],
-        reply: a.model_answer_tr || "",
-        note: a.positive_note_uz || "",
-        level_score: a.level_score || "A1",
-        mistakes: a.mistakes || [],
-        phrases: a.useful_phrases || [],
+        user: data.transcription || text,
+        aylin: data.next_question_tr || "",
+        aylin_uz: data.next_question_uz || "",
+        hints: data.answer_hints || [],
+        reply: data.model_answer_tr || "",
+        note: data.positive_note_uz || "",
+        level_score: data.level_score || "A1",
+        mistakes: data.mistakes || [],
+        phrases: data.useful_phrases || [],
       };
       turnsRef.current = [...turnsRef.current, turn];
       setHistory([...turnsRef.current].reverse());
       questionRef.current = turn.aylin || questionRef.current;
-      setShowUz(false);
-      setShowHints(false);
       return turn;
     } catch (e) {
-      setError(`Javob tahlil qilinmadi: ${e.message}`);
+      toast(`Javob tahlil qilinmadi: ${e.message}`, "error");
       return null;
     }
   }, []);
@@ -162,10 +154,7 @@ export default function CallScreen({
     setHistory([]);
     setReport(null);
     setReportError("");
-    setError("");
     setShowUz(false);
-    setShowHints(false);
-    setShowHistory(false);
     setStarting(true);
     setStage("call");
     questionRef.current = selected.opening_tr;
@@ -183,7 +172,7 @@ export default function CallScreen({
       call.end();
       if (sessionRef.current === token) {
         setStage("setup");
-        setError(`Mikrofon ochilmadi: ${e.message}. Brauzerda mikrofon ruxsatini bering.`);
+        toast(`Mikrofon ochilmadi: ${e.message}. Brauzerda ruxsat bering.`, "error");
       }
     } finally {
       setStarting(false);
@@ -202,7 +191,9 @@ export default function CallScreen({
       });
       setReport(data);
     } catch (e) {
-      setReportError(e.message || "Hisobot yaratilmadi");
+      const message = e.message || "Hisobot yaratilmadi";
+      setReportError(message);
+      toast(message, "error");
     } finally {
       setReportLoading(false);
     }
@@ -213,6 +204,7 @@ export default function CallScreen({
     sessionRef.current += 1;
     call.end();
     stopTTS?.();
+    setShowUz(false);
     runReport();
   };
 
@@ -226,10 +218,7 @@ export default function CallScreen({
     setReportError("");
     setHistory([]);
     turnsRef.current = [];
-    setError("");
     setShowUz(false);
-    setShowHints(false);
-    setShowHistory(false);
   };
 
   const leave = () => {
@@ -250,7 +239,6 @@ export default function CallScreen({
         onBack={leave}
         loading={loadingScenarios}
         starting={starting}
-        error={error}
         speed={speed}
         setSpeed={setSpeed}
       />
@@ -290,222 +278,137 @@ export default function CallScreen({
     call.callState === "listening"
       ? "Gapiring — Aylin Hoca tinglaydi"
       : call.callState === "thinking"
-        ? "Aylin Hoca o'ylayapti…"
+        ? "Aylin Hoca o'ylayapti"
         : call.muted
           ? "Mikrofon o'chirilgan"
           : isSpeaking
             ? ""
-            : "Suhbat tayyor";
+            : starting
+              ? "Ulanmoqda"
+              : "Suhbat tayyor";
   const meta = STATUS[call.callState] || STATUS.idle;
-  const waveMode = isSpeaking ? "speaking" : call.callState === "listening" ? "listening" : "idle";
+  const orbMode = call.muted ? "muted" : call.callState === "idle" && starting ? "thinking" : call.callState;
 
   return (
-    <div className="relative flex min-h-[calc(100dvh-158px)] flex-col overflow-hidden rounded-[36px] border border-white/10 bg-[#090B12]/85 shadow-[0_40px_120px_-35px_rgba(124,58,237,.55)] backdrop-blur-2xl">
-      <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-fuchsia-600/15 blur-[100px]" />
-      <div className="pointer-events-none absolute -right-20 top-1/3 h-72 w-72 rounded-full bg-violet-600/15 blur-[100px]" />
-      <div className="pointer-events-none absolute -bottom-20 left-1/3 h-64 w-64 rounded-full bg-sky-500/10 blur-[100px]" />
+    <div className="call-screen fixed inset-0 z-[80] flex flex-col overflow-hidden">
+      <header className="relative z-20 flex items-center justify-between px-4 pb-2 pt-[max(14px,env(safe-area-inset-top))] sm:px-6">
+        <button
+          onClick={finish}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-400 transition hover:bg-white/[0.08] hover:text-zinc-100"
+          aria-label="Qo'ng'iroqni tugatish"
+        >
+          <Icon name="x" size={16} />
+        </button>
 
-      <div className="relative z-10 flex flex-1 flex-col overflow-y-auto px-4 pb-2 pt-4 sm:px-6">
-        <div className="flex items-center gap-2">
-          <span className="glass-chip inline-flex min-w-0 items-center gap-1.5 truncate rounded-full px-3 py-1.5 text-[11px] font-bold text-white/75">
-            <span className="shrink-0">{selected?.emoji}</span>
-            <span className="truncate">{selected?.title_uz}</span>
-          </span>
-          <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[9px] font-bold text-white/40">
-            {selected?.level}
-          </span>
-          <span className="ml-auto shrink-0 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-[11px] font-bold tabular-nums text-white/50">
-            {fmt(call.seconds)}
-          </span>
+        <div className="pointer-events-none absolute left-1/2 top-[max(14px,env(safe-area-inset-top))] -translate-x-1/2 text-center">
+          <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-600">Ovozli suhbat</p>
+          <p className="mt-1 text-[11px] font-medium tabular-nums text-zinc-400">{fmt(call.seconds)}</p>
         </div>
 
-        <div className="mt-2 flex justify-center">
-          <SpeedControl value={speed} onChange={setSpeed} compact />
+        <div className="flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 text-[10px] font-medium text-zinc-500">
+          <span className={`h-1.5 w-1.5 rounded-full ${meta.dot} ${call.callState !== "idle" ? "animate-pulse" : ""}`} />
+          {meta.label}
         </div>
+      </header>
 
-        <div className="flex flex-1 flex-col items-center justify-center py-3 text-center">
-          <GlowingOrb mode={call.muted ? "muted" : call.callState} />
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-5 py-4 text-center sm:px-8">
+        <GlowingOrb mode={orbMode} />
 
-          <div className="mt-1 flex items-center gap-2">
-            <span className={`h-1.5 w-1.5 rounded-full ${meta.dot} ${call.callState !== "idle" ? "animate-pulse" : ""}`} />
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/40">{meta.label}</p>
-          </div>
+        <h1 className="mt-7 text-[22px] font-semibold tracking-[-0.03em] text-zinc-50 sm:text-[24px]">
+          Aylin Hoca
+        </h1>
+        <p className="mt-1 flex items-center gap-1.5 text-[11px] text-zinc-500">
+          <span>{selected?.title_uz}</span>
+          <span className="text-zinc-700">·</span>
+          <span className="tabular-nums">{selected?.level}</span>
+        </p>
 
-          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-white">Aylin Hoca</h2>
-          <p className="mt-0.5 text-[11px] tracking-wide text-white/30">Turk tili · AI voice tutor</p>
+        <Captions text={captionText} placeholder={placeholder} speaking={isSpeaking} className="mt-6 max-w-2xl" />
 
-          <Captions text={captionText} placeholder={placeholder} speaking={isSpeaking} className="mt-4" />
-
-          <div className="mt-1 w-full max-w-sm opacity-60">
-            <Waveform getAnalyser={call.getAnalyser} active={call.callState !== "thinking"} mode={waveMode} />
-          </div>
-
-          <div className="mt-2 flex flex-wrap justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowUz((v) => !v)}
-              className={`glass-chip rounded-full px-4 py-2 text-[11px] font-bold transition ${
-                showUz ? "border-sky-300/30 text-sky-200" : "text-white/55 hover:text-white/85"
-              }`}
-            >
-              O&apos;zbekcha ma&apos;nosi
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowHints((v) => !v)}
-              className={`glass-chip rounded-full px-4 py-2 text-[11px] font-bold transition ${
-                showHints ? "border-amber-300/30 text-amber-200" : "text-white/55 hover:text-white/85"
-              }`}
-            >
-              Maslahat olish
-            </button>
-          </div>
-
-          {showUz && (
-            <div className="mt-3 w-full max-w-xl rounded-2xl border border-sky-300/15 bg-sky-400/[0.06] p-4 text-left backdrop-blur-xl">
-              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-sky-300/70">
-                Aylin so&apos;ragan savol
-              </p>
-              <p className="mt-1.5 text-sm font-semibold text-white/85">{currentTr}</p>
-              <p className="mt-1 text-sm text-sky-200/75">{currentUz || "Tarjima tayyorlanmoqda…"}</p>
-            </div>
-          )}
-
-          {showHints && (
-            <div className="mt-3 w-full max-w-xl rounded-2xl border border-amber-300/15 bg-amber-400/[0.06] p-4 text-left backdrop-blur-xl">
-              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-amber-200/70">
-                Shunday javob berishingiz mumkin
-              </p>
-              {currentHints.length === 0 ? (
-                <p className="mt-1.5 text-xs text-amber-100/60">
-                  Maslahat tayyorlanmoqda — savolni tinglab, o&apos;z so&apos;zlaringiz bilan javob bering.
-                </p>
-              ) : (
-                <ul className="mt-2 space-y-2.5">
-                  {currentHints.map((h, i) => (
-                    <li key={i} className="flex flex-wrap items-center gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-white/85">{h.tr}</p>
-                        <p className="text-[11px] text-white/40">{h.uz}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => playTTS?.(h.tr)}
-                        className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[10px] font-bold text-white/60 hover:text-white"
-                      >
-                        Tinglash
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setShowHistory((v) => !v)}
-            className="mt-4 inline-flex items-center gap-1.5 text-[10px] font-semibold text-white/25 transition hover:text-white/50"
-          >
-            Suhbat tafsilotlari
-            {history.length > 0 && <span className="text-white/40">· {history.length}</span>}
-            <span className="text-[8px]">{showHistory ? "▲" : "▼"}</span>
-          </button>
-
-          {showHistory && (
-            <div className="mt-2 w-full max-w-xl space-y-3 text-left">
-              {history.map((t, i) => (
-                <div key={i} className="space-y-2">
-                  {t.mistakes?.length > 0 && (
-                    <div className="rounded-2xl border border-amber-300/15 bg-amber-400/[0.05] p-3 backdrop-blur-xl">
-                      <p className="text-[9px] font-bold uppercase tracking-wide text-amber-200/60">
-                        Tahlil · daraja {t.level_score}
-                      </p>
-                      {t.mistakes.map((m, j) => (
-                        <div key={j} className="mt-2 text-sm">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-rose-300/80 line-through">
-                              {(TYPE_META[m.type] || TYPE_META.grammar).icon} {m.wrong}
-                            </p>
-                            <p className="font-bold text-emerald-300">✓ {m.correct}</p>
-                            <span className="ml-auto">
-                              <SaveButton
-                                item={{
-                                  tr: m.correct,
-                                  uz: m.explanation_uz,
-                                  wrong: m.wrong,
-                                  type: m.type,
-                                  source: scenarioRef.current?.title_uz,
-                                }}
-                                vocab={vocab}
-                                compact
-                              />
-                            </span>
-                          </div>
-                          <p className="text-white/40">{m.explanation_uz}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {t.phrases?.length > 0 && (
-                    <div className="rounded-2xl border border-indigo-300/15 bg-indigo-400/[0.05] p-3 backdrop-blur-xl">
-                      <p className="text-[9px] font-bold uppercase tracking-wide text-indigo-200/60">Yangi iboralar</p>
-                      {t.phrases.map((p, j) => (
-                        <div key={j} className="mt-1.5 flex flex-wrap items-center gap-2">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-white/85">{p.tr}</p>
-                            <p className="text-[11px] text-white/40">{p.uz}</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => playTTS?.(p.tr)}
-                            className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-[10px] font-bold text-white/60 hover:text-white"
-                          >
-                            Tinglash
-                          </button>
-                          <SaveButton
-                            item={{ tr: p.tr, uz: p.uz, type: "phrase", source: scenarioRef.current?.title_uz }}
-                            vocab={vocab}
-                            compact
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="ml-auto max-w-[88%] rounded-2xl rounded-br-sm border border-fuchsia-300/15 bg-fuchsia-500/10 px-3.5 py-2 text-sm text-white/85 backdrop-blur-xl">
-                    {t.user}
-                  </div>
-                  {t.note && <p className="text-center text-[10px] text-emerald-300/70">{t.note}</p>}
-                  {t.aylin && (
-                    <div className="max-w-[88%] rounded-2xl rounded-bl-sm border border-white/10 bg-white/[0.05] px-3.5 py-2 text-sm text-white/70 backdrop-blur-xl">
-                      {t.aylin}
-                    </div>
-                  )}
-                </div>
-              ))}
-              {history.length === 0 && (
-                <p className="py-2 text-center text-xs text-white/25">Suhbat hali boshlanmadi.</p>
-              )}
-            </div>
-          )}
-
-          {error && (
-            <div className="mt-3 w-full max-w-xl rounded-2xl border border-rose-400/20 bg-rose-500/10 p-3 text-left text-xs leading-relaxed text-rose-200">
-              {error}
-            </div>
-          )}
+        <div className="mt-3 flex items-center gap-2 text-[10px] text-zinc-600">
+          <Icon name="volume" size={12} />
+          <span>Emel Neural · tr-TR</span>
         </div>
       </div>
 
-      <div className="relative z-10 border-t border-white/[0.05] px-3 pb-4 pt-3 sm:px-5">
+      {showUz && (
+        <div className="fixed inset-x-3 bottom-[112px] z-30 mx-auto max-h-[52dvh] max-w-lg overflow-y-auto rounded-2xl call-sheet p-4 sm:inset-x-auto sm:left-1/2 sm:w-[440px] sm:-translate-x-1/2">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">Tarjima va maslahat</p>
+            <button
+              onClick={() => setShowUz(false)}
+              className="rounded-md p-1 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
+              aria-label="Yopish"
+            >
+              <Icon name="x" size={14} />
+            </button>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
+            <p className="text-[13px] font-medium leading-relaxed text-zinc-100">{currentTr}</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-zinc-500">{currentUz || "Tarjima tayyorlanmoqda"}</p>
+          </div>
+
+          <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600">
+            Shunday javob berishingiz mumkin
+          </p>
+          {currentHints.length === 0 ? (
+            <p className="mt-2 text-[12px] leading-relaxed text-zinc-500">
+              Savolni tinglab, o&apos;z so&apos;zlaringiz bilan javob bering.
+            </p>
+          ) : (
+            <ul className="mt-2 space-y-1.5">
+              {currentHints.map((hint, index) => (
+                <li
+                  key={index}
+                  className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2"
+                >
+                  <div className="min-w-0 flex-1 text-left">
+                    <p className="text-[12px] font-medium leading-snug text-zinc-200">{hint.tr}</p>
+                    <p className="mt-0.5 text-[10px] leading-snug text-zinc-500">{hint.uz}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => playTTS?.(hint.tr)}
+                    className="rounded-md p-1.5 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
+                    aria-label="Tinglash"
+                  >
+                    <Icon name="volume" size={13} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {history.length > 0 && (
+            <>
+              <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600">Suhbat tarixi</p>
+              <div className="mt-2 space-y-2">
+                {history.slice(0, 3).map((turn, index) => (
+                  <div key={index} className="space-y-1.5">
+                    <p className="ml-auto max-w-[88%] rounded-lg rounded-br-sm border border-white/[0.07] bg-white/[0.05] px-2.5 py-1.5 text-left text-[11px] leading-relaxed text-zinc-300">
+                      {turn.user}
+                    </p>
+                    {turn.aylin && (
+                      <p className="mr-auto max-w-[88%] rounded-lg rounded-bl-sm border border-white/[0.05] bg-white/[0.02] px-2.5 py-1.5 text-left text-[11px] leading-relaxed text-zinc-500">
+                        {turn.aylin}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="relative z-20 shrink-0">
         <CallDock
           muted={call.muted}
           onToggleMute={call.toggleMute}
           onEnd={finish}
           showTranslation={showUz}
-          onToggleTranslation={() => setShowUz((v) => !v)}
+          onToggleTranslation={() => setShowUz((value) => !value)}
         />
       </div>
     </div>

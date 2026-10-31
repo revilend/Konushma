@@ -3,7 +3,6 @@
 SCENARIOS: list[dict] = [
     {
         "id": "cafe",
-        "emoji": "☕",
         "title_uz": "Kafeda buyurtma berish",
         "title_tr": "Kafede sipariş vermek",
         "level": "A1-A2",
@@ -19,7 +18,6 @@ SCENARIOS: list[dict] = [
     },
     {
         "id": "bazaar",
-        "emoji": "🛍️",
         "title_uz": "Kapalıçarşı'da savdolashish",
         "title_tr": "Kapalıçarşı'da pazarlık",
         "level": "B1",
@@ -35,7 +33,6 @@ SCENARIOS: list[dict] = [
     },
     {
         "id": "airport",
-        "emoji": "✈️",
         "title_uz": "Istanbul aeroportida pasport nazorati",
         "title_tr": "İstanbul Havalimanı'nda pasaport kontrolü",
         "level": "A2-B1",
@@ -51,7 +48,6 @@ SCENARIOS: list[dict] = [
     },
     {
         "id": "tomer",
-        "emoji": "🎓",
         "title_uz": "TÖMER / Yunus Emre og'zaki imtihoni",
         "title_tr": "TÖMER / Yunus Emre konuşma sınavı",
         "level": "B2-C1",
@@ -67,7 +63,6 @@ SCENARIOS: list[dict] = [
     },
     {
         "id": "free",
-        "emoji": "💬",
         "title_uz": "Erkin do'stona suhbat",
         "title_tr": "Serbest sohbet",
         "level": "A2-B2",
