@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { subscribeToasts } from "../lib/toast";
 import Icon from "./Icons";
 
-export default function ToastHost() {
+export default function ToastHost({ elevated = false }) {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
@@ -17,7 +17,11 @@ export default function ToastHost() {
   if (!items.length) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[120] flex flex-col items-center gap-2 px-4">
+    <div
+      className={`pointer-events-none fixed inset-x-0 z-[120] flex flex-col items-center gap-2 px-4 ${
+        elevated ? "bottom-28" : "bottom-6"
+      }`}
+    >
       {items.map((item) => (
         <div
           key={item.id}

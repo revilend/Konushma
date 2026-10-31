@@ -313,7 +313,7 @@ export default function App() {
         apiKey={apiKey}
         onSaved={handleKeySaved}
       />
-      <ToastHost />
+      <ToastHost elevated={immersive} />
     </div>
   );
 }
