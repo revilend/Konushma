@@ -79,6 +79,15 @@ SCENARIOS: list[dict] = [
 ]
 
 
+SCENARIO_PERSONAS = {
+    "cafe": "aylin",
+    "bazaar": "mehmet",
+    "airport": "aylin",
+    "tomer": "aylin",
+    "free": "aylin",
+}
+
+
 HINTS: dict[str, list[dict]] = {
     "cafe": [
         {"tr": "Bir kahve alabilir miyim?", "uz": "Bir kofe olsam bo'ladimi?"},
@@ -113,6 +122,7 @@ def list_scenarios() -> list[dict]:
         {
             **{k: v for k, v in s.items() if k not in ("context", "phrases")},
             "hints": HINTS.get(s["id"], []),
+            "persona": SCENARIO_PERSONAS.get(s["id"], "aylin"),
         }
         for s in SCENARIOS
     ]

@@ -2,15 +2,17 @@ import SaveButton from "./SaveButton";
 import Icon from "./Icons";
 
 const METRICS = [
-  { key: "fluency", label: "Ravonlik", icon: "message" },
-  { key: "vocabulary", label: "Lug'at boyligi", icon: "book" },
-  { key: "grammar", label: "Grammatika", icon: "sparkles" },
+  { key: "fluency", label: "Ravonlik", icon: "message", bar: "from-sky-400 to-cyan-200" },
+  { key: "vocabulary", label: "Lug'at boyligi", icon: "book", bar: "from-amber-400 to-yellow-200" },
+  { key: "grammar", label: "Grammatika", icon: "sparkles", bar: "from-violet-400 to-fuchsia-200" },
+  { key: "pronunciation", label: "Talaffuz", icon: "mic", bar: "from-mint-400 to-mint-200" },
 ];
 
 const TYPE_LABEL = {
   grammar: "Grammatika",
   vocabulary: "Lug'at",
   false_friend: "Soxta do'st",
+  pronunciation: "Talaffuz",
 };
 
 function ScoreBar({ metric, value }) {
@@ -23,9 +25,9 @@ function ScoreBar({ metric, value }) {
         </span>
         <span className="text-[15px] font-semibold tabular-nums text-zinc-100">{value}</span>
       </div>
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
         <div
-          className="h-full rounded-full bg-zinc-300 transition-all duration-700"
+          className={`h-full rounded-full bg-gradient-to-r ${metric.bar} transition-all duration-700`}
           style={{ width: `${Math.max(4, Math.min(100, value))}%` }}
         />
       </div>
@@ -55,8 +57,8 @@ export default function PostCallReport({
             Suhbat tahlil qilinmoqda: ravonlik, lug&apos;at va grammatika baholanmoqda.
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {[0, 1, 2].map((index) => (
+        <div className="grid gap-2.5 sm:grid-cols-4">
+          {[0, 1, 2, 3].map((index) => (
             <div key={index} className="h-24 animate-pulse rounded-xl border border-white/[0.05] bg-white/[0.02]" />
           ))}
         </div>
@@ -76,7 +78,7 @@ export default function PostCallReport({
           <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
             <button
               onClick={onRetry}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-4 py-2.5 text-[11px] font-semibold text-zinc-900 transition hover:bg-white"
+              className="btn-primary inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 text-[11px] font-semibold"
             >
               <Icon name="refresh" size={12} />
               Qayta urinish
@@ -98,7 +100,7 @@ export default function PostCallReport({
 
   return (
     <div className="fade-up mx-auto max-w-3xl space-y-3">
-      <section className="surface rounded-2xl p-5 sm:p-6">
+      <section className="voice-hero rounded-[28px] p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="eyebrow">Session report</p>
@@ -120,7 +122,7 @@ export default function PostCallReport({
         )}
       </section>
 
-      <div className="grid gap-2.5 sm:grid-cols-3">
+      <div className="grid gap-2.5 sm:grid-cols-4">
         {METRICS.map((metric) => (
           <ScoreBar key={metric.key} metric={metric} value={scores[metric.key] ?? 0} />
         ))}
@@ -221,7 +223,7 @@ export default function PostCallReport({
       <div className="grid gap-2 sm:grid-cols-3">
         <button
           onClick={onRestart}
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-zinc-100 px-4 py-3 text-[12px] font-semibold text-zinc-900 transition hover:bg-white"
+          className="btn-primary inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-3 text-[12px] font-semibold"
         >
           <Icon name="rotate" size={13} />
           Yana qo&apos;ng&apos;iroq

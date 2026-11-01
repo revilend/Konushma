@@ -11,7 +11,7 @@ log = logging.getLogger("aylin.report")
 REPORT_PROMPT = """Sen Aylin Hoca — tajribali turk tili o'qituvchisi. Senga jonli telefon suhbati transkripti beriladi.
 Faqat JSON qaytar, izoh yozma. Baholash mezonlari:
 - cefr: A1, A2, B1, B2 yoki C1.
-- scores: fluency (ravonlik), vocabulary (lug'at boyligi), grammar (grammatika) — har biri 0-100 butun son.
+- scores: fluency (ravonlik), vocabulary (lug'at boyligi), grammar (grammatika), pronunciation (talaffuz) — har biri 0-100 butun son.
 - strengths_uz: 2-4 ta qisqa o'zbekcha xulosa, foydalanuvchining kuchli tomonlari.
 - mistakes: 1-6 ta asosiy xato; wrong, correct, type (grammar|vocabulary|false_friend), explanation_uz.
 - phrases: 3-6 ta suhbatda ishlatilgan yoki aytilishi kerak bo'lgan foydali turkcha ibora; tr va o'zbekcha uz tarjimasi.
@@ -28,8 +28,9 @@ REPORT_SCHEMA = {
                 "fluency": {"type": "INTEGER"},
                 "vocabulary": {"type": "INTEGER"},
                 "grammar": {"type": "INTEGER"},
+                "pronunciation": {"type": "INTEGER"},
             },
-            "required": ["fluency", "vocabulary", "grammar"],
+            "required": ["fluency", "vocabulary", "grammar", "pronunciation"],
         },
         "strengths_uz": {"type": "ARRAY", "items": {"type": "STRING"}},
         "mistakes": {
@@ -101,7 +102,7 @@ def _local_report(turns: list[dict], mistakes: list[dict], scenario_id: str) -> 
     if not users:
         return {
             "cefr": "A1",
-            "scores": {"fluency": 20, "vocabulary": 20, "grammar": 20},
+            "scores": {"fluency": 20, "vocabulary": 20, "grammar": 20, "pronunciation": 20},
             "strengths_uz": ["Suhbatga vaqt ajratdingiz — keyingi qo'ng'iroqda kamida 2-3 jumla gapirib ko'ring."],
             "mistakes": [],
             "phrases": local_phrases(scenario_id)[:5],
@@ -118,7 +119,13 @@ def _local_report(turns: list[dict], mistakes: list[dict], scenario_id: str) -> 
     fluency = _clamp(38 + avg_words * 3.2 + min(len(users), 8) * 1.6)
     vocabulary = _clamp(40 + min(unique, 90) * 0.5 + unique_ratio * 28)
     grammar = _clamp(94 - len(deduped) * 5.5 - (8 if avg_words < 4 else 0))
-    overall = (fluency + vocabulary + grammar) / 3
+    turn_pron = [
+        int(t.get("pronunciation_score"))
+        for t in turns
+        if str(t.get("pronunciation_score", "")).isdigit()
+    ]
+    pronunciation = _clamp(sum(turn_pron) / len(turn_pron)) if turn_pron else _clamp(grammar - 2)
+    overall = (fluency + vocabulary + grammar + pronunciation) / 4
 
     strengths = []
     if fluency >= 65:
@@ -140,7 +147,12 @@ def _local_report(turns: list[dict], mistakes: list[dict], scenario_id: str) -> 
     )
     return {
         "cefr": _cefr(overall),
-        "scores": {"fluency": fluency, "vocabulary": vocabulary, "grammar": grammar},
+        "scores": {
+            "fluency": fluency,
+            "vocabulary": vocabulary,
+            "grammar": grammar,
+            "pronunciation": pronunciation,
+        },
         "strengths_uz": strengths[:4],
         "mistakes": deduped,
         "phrases": phrases[:5],
@@ -158,6 +170,7 @@ def _normalize(raw: dict, turns: list[dict], mistakes: list[dict], scenario_id: 
             "fluency": _clamp(float(scores.get("fluency", 60))),
             "vocabulary": _clamp(float(scores.get("vocabulary", 60))),
             "grammar": _clamp(float(scores.get("grammar", 60))),
+            "pronunciation": _clamp(float(scores.get("pronunciation", scores.get("grammar", 60)))),
         },
         "strengths_uz": [str(s)[:400] for s in (raw.get("strengths_uz") or [])][:5],
         "mistakes": _dedupe_mistakes(raw.get("mistakes") or mistakes),
@@ -191,7 +204,9 @@ async def build_report(
     for i, t in enumerate(turns, 1):
         lines.append(f"{i}. Foydalanuvchi: {t.get('user', '')}")
         if t.get("aylin"):
-            lines.append(f"   Aylin Hoca: {t.get('aylin', '')}")
+            lines.append(f"   Suhbatdosh: {t.get('aylin', '')}")
+        if t.get("pronunciation_score"):
+            lines.append(f"   Talaffuz bahosi: {t.get('pronunciation_score')}%")
     if mistakes:
         lines.append("\nSUHBATDA ANIQLANGAN XATOLAR:")
         for m in _dedupe_mistakes(mistakes)[:10]:

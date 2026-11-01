@@ -29,11 +29,11 @@ export default function ApiKeyModal({ open, onClose, apiKey, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <button aria-label="Yopish" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-[#121215]/95 p-5 shadow-[0_30px_100px_-20px_rgba(0,0,0,.9)] backdrop-blur-xl sm:p-6">
+      <button aria-label="Yopish" onClick={onClose} className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-mint-300/15 bg-gradient-to-b from-[#16231b] to-[#0b120e] p-5 shadow-[0_40px_120px_-30px_rgba(16,185,129,.35)] sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-300">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-lime-200/30 to-mint-300/10 text-mint-200">
               <Icon name="key" size={16} />
             </span>
             <div>
@@ -52,7 +52,7 @@ export default function ApiKeyModal({ open, onClose, apiKey, onSaved }) {
             href="https://aistudio.google.com/app/apikey"
             target="_blank"
             rel="noreferrer"
-            className="text-zinc-200 underline decoration-zinc-600 underline-offset-2 hover:decoration-zinc-300"
+            className="font-medium text-mint-200 underline decoration-mint-300/40 underline-offset-2 hover:decoration-mint-200"
           >
             Google AI Studio
           </a>{" "}
@@ -62,7 +62,7 @@ export default function ApiKeyModal({ open, onClose, apiKey, onSaved }) {
         <label className="mt-5 block text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
           Gemini API key
         </label>
-        <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-white/10 bg-zinc-950/60 px-3 py-2.5 focus-within:border-white/25">
+        <div className="mt-1.5 flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-950/60 px-3 py-2.5 transition focus-within:border-mint-300/40 focus-within:shadow-[0_0_0_3px_rgba(110,231,183,.06)]">
           <input
             type={show ? "text" : "password"}
             value={value}
@@ -91,7 +91,7 @@ export default function ApiKeyModal({ open, onClose, apiKey, onSaved }) {
 
         <button
           onClick={save}
-          className="mt-5 w-full rounded-lg bg-zinc-100 px-4 py-2.5 text-[13px] font-semibold text-zinc-900 transition hover:bg-white"
+          className="btn-primary mt-5 w-full rounded-xl px-4 py-3 text-[13px] font-semibold"
         >
           Saqlash
         </button>
@@ -112,7 +112,7 @@ export default function ApiKeyModal({ open, onClose, apiKey, onSaved }) {
                 onSaved?.("");
                 onClose?.();
               }}
-              className="text-[11px] text-zinc-500 transition hover:text-zinc-300"
+              className="text-[11px] text-zinc-500 transition hover:text-rose-200"
             >
               Kalitni o‘chirish
             </button>

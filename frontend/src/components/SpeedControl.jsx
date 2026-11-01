@@ -23,7 +23,7 @@ export default function SpeedControl({ value = 1, onChange, compact = false }) {
           aria-pressed={Number(value) === speed.value}
           className={`rounded-md px-2 py-1 font-medium tabular-nums transition ${
             Number(value) === speed.value
-              ? "bg-zinc-100 text-zinc-900"
+              ? "bg-gradient-to-br from-lime-200 to-mint-300 text-emerald-950 shadow-sm"
               : "text-zinc-500 hover:bg-white/[0.06] hover:text-zinc-300"
           }`}
         >

@@ -1,6 +1,7 @@
 """AI tahlil servisi: Gemini (asosiy) + OpenAI-mos API (zaxira)."""
 import json
 import logging
+import re
 
 import httpx
 
@@ -13,6 +14,7 @@ from ..config import (
     ai_provider,
 )
 from .instruction import SYSTEM_PROMPT
+from .personas import get_persona
 from .scenarios import get_scenario
 
 log = logging.getLogger("aylin.ai")
@@ -27,6 +29,7 @@ RESULT_KEYS = [
     "useful_phrases",
     "next_question_uz",
     "answer_hints",
+    "pronunciation_score",
 ]
 
 # Gemini uchun qat'iy JSON sxemasi
@@ -35,6 +38,10 @@ GEMINI_RESPONSE_SCHEMA = {
     "properties": {
         "transcription": {"type": "STRING"},
         "level_score": {"type": "STRING", "description": "A1..B2 daraja"},
+        "pronunciation_score": {
+            "type": "INTEGER",
+            "description": "55-98 oralig'ida taxminiy talaffuz bahosi (transkript asosida)",
+        },
         "mistakes": {
             "type": "ARRAY",
             "items": {
@@ -73,29 +80,56 @@ GEMINI_RESPONSE_SCHEMA = {
 }
 
 
-def _user_prompt(transcription: str, question_tr: str, question_uz: str, mode: str, scenario_id: str = "") -> str:
+def _user_prompt(
+    transcription: str,
+    question_tr: str,
+    question_uz: str,
+    mode: str,
+    scenario_id: str = "",
+    persona_id: str = "aylin",
+    level: str = "",
+) -> str:
     if mode == "exam":
         rejim = "IMTIHON (qat'iy sinov) rejimi"
     elif mode == "call":
-        rejim = "JONLI QO'NG'IROQ (telefon suhbati) rejimi — Aylin javobi qisqa (1-2 jumla), suhbatkor va telefonovaz bo'lsin"
+        rejim = "JONLI QO'NG'IROQ (telefon suhbati) rejimi — suhbatdosh javobi qisqa (1-2 jumla), suhbatkor va telefonovoz bo'lsin"
     else:
         rejim = "PRATIK (murabbiy) rejimi"
     sc = get_scenario(scenario_id)
+    persona = get_persona(persona_id)
     scenario_line = (
         f"STENARIY: {sc['title_uz']} ({sc['level']}) — {sc['context']}\n" if sc else ""
     )
+    persona_line = (
+        f"SUHBATDOSH: {persona['name']} — {persona['role']}. "
+        f"Ohang: {persona['tone']}. O'zingni shu personaj sifatida tut; ismingni shu nom bilan ayt.\n"
+    )
+    level_line = f"FOYDALANUVCHI DARAJASI: {level}. Tushuntirish va savollarni shu darajaga moslashtir.\n" if level else ""
     return (
         f"REJIM: {rejim}.\n"
         f"{scenario_line}"
-        f"AYLIN SAVOL berdi (question_tr): {question_tr}\n"
+        f"{persona_line}"
+        f"{level_line}"
+        f"SAVOL (question_tr): {question_tr}\n"
         f"Savolning o'zbekcha tarjimasi: {question_uz}\n"
         f"FOYDALANUVCHI gapirgan javob (STT transkript): {transcription!r}\n\n"
         "Vazifa: yuqoridagi instruksiya bo'yicha to'liq tahlil qil va FAQAT JSON qaytar."
-        " next_question_tr — savolga ulangan va stsenariyga mos yangi tabiiy ochiq savol bo'lsin."
+        " next_question_tr — savolga ulangan, stsenariy va personajga mos yangi tabiiy ochiq savol bo'lsin."
         " useful_phrases — shu javobda ishlatilishi mumkin bo'lgan 1-3 ta foydali turkcha ibora (o'zbekcha tarjimasi bilan)."
         " next_question_uz — next_question_tr ning tabiiy o'zbekcha tarjimasi."
         " answer_hints — foydalanuvchi javob bera olmay qolsa ishlatadigan 2-3 ta qisqa namunaviy turkcha javob (tr + uz)."
+        " pronunciation_score — transkript ravonligi, so'z aniqligi va xatolar soniga qarab 55-98 oralig'ida taxminiy talaffuz foizi."
     )
+
+
+def _estimate_pronunciation(transcription: str, mistakes: list, level: str = "") -> int:
+    words = re.findall(r"[\wçğıöşüâîû]+", transcription or "", flags=re.UNICODE)
+    score = 90 - len(mistakes or []) * 4.5 + min(len(words), 24) * 0.45
+    if len(words) < 4:
+        score -= 8
+    if (level or "").upper().startswith("B"):
+        score += 1
+    return max(55, min(98, int(round(score))))
 
 
 async def _call_gemini(
@@ -186,6 +220,13 @@ def _normalize(result: dict, transcription: str) -> dict:
         m["type"] = str(m.get("type", "grammar"))[:32]
         m["explanation_uz"] = str(m.get("explanation_uz", ""))
     out["level_score"] = out.get("level_score") or "A1+"
+    try:
+        pronunciation = int(round(float(out.get("pronunciation_score"))))
+    except (TypeError, ValueError):
+        pronunciation = 0
+    if not 40 <= pronunciation <= 100:
+        pronunciation = _estimate_pronunciation(transcription, out["mistakes"], out["level_score"])
+    out["pronunciation_score"] = max(55, min(98, pronunciation))
     out["model_answer_tr"] = out.get("model_answer_tr") or ""
     out["next_question_tr"] = out.get("next_question_tr") or ""
     out["next_question_uz"] = out.get("next_question_uz") or ""
@@ -210,7 +251,11 @@ async def analyze(
     mode: str = "practice",
     scenario: str = "",
     api_key: str | None = None,
+    persona: str = "aylin",
+    level: str = "",
 ) -> dict:
-    payload = _user_prompt(transcription, question_tr, question_uz, mode, scenario)
+    payload = _user_prompt(
+        transcription, question_tr, question_uz, mode, scenario, persona, level
+    )
     result = await call_llm(payload, api_key=api_key)
     return _normalize(result, transcription)

@@ -2,22 +2,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { toast } from "../lib/toast";
 import { useCall } from "../lib/useCall";
+import { getPersona, PERSONAS } from "../lib/personas";
+import { trackMission } from "../lib/missions";
 import ScenarioPicker from "./ScenarioPicker";
 import PostCallReport from "./PostCallReport";
 import GlowingOrb from "./GlowingOrb";
 import Captions from "./Captions";
 import CallDock from "./CallDock";
+import Waveform from "./Waveform";
+import GrammarPanel from "./GrammarPanel";
+import PronunciationRing from "./PronunciationRing";
+import ClickableText from "./ClickableText";
 import Icon from "./Icons";
 
 const fmt = (s) =>
   `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
 const STATUS = {
-  listening: { label: "Tinglayapti", dot: "bg-zinc-100" },
-  speaking: { label: "Gapirmoqda", dot: "bg-zinc-100" },
-  thinking: { label: "O'ylayapti", dot: "bg-zinc-400" },
-  muted: { label: "Mikrofon o'chirilgan", dot: "bg-zinc-600" },
-  idle: { label: "Tayyor", dot: "bg-zinc-600" },
+  listening: { label: "Tinglayapti", dot: "bg-mint-300", text: "text-mint-100" },
+  speaking: { label: "Gapirmoqda", dot: "bg-amber-300", text: "text-amber-100" },
+  thinking: { label: "O'ylayapti", dot: "bg-sky-300", text: "text-sky-100" },
+  muted: { label: "Mikrofon o'chirilgan", dot: "bg-rose-300", text: "text-rose-100" },
+  idle: { label: "Tayyor", dot: "bg-zinc-600", text: "text-zinc-500" },
 };
 
 export default function CallScreen({
@@ -30,10 +36,13 @@ export default function CallScreen({
   setSpeed,
   onSessionSeconds,
   onStageChange,
+  level,
 }) {
   const [scenarios, setScenarios] = useState([]);
+  const [personas, setPersonas] = useState(PERSONAS);
   const [loadingScenarios, setLoadingScenarios] = useState(true);
   const [scenarioId, setScenarioId] = useState("free");
+  const [personaId, setPersonaId] = useState("aylin");
   const [stage, setStage] = useState("setup");
   const [history, setHistory] = useState([]);
   const [starting, setStarting] = useState(false);
@@ -53,6 +62,7 @@ export default function CallScreen({
   const creditRef = useRef(() => {});
 
   const selected = scenarios.find((s) => s.id === scenarioId) || null;
+  const selectedPersona = getPersona(personaId);
 
   useEffect(() => {
     onStageChange?.(stage);
@@ -65,12 +75,19 @@ export default function CallScreen({
   const loadScenarios = useCallback(async () => {
     setLoadingScenarios(true);
     try {
-      const data = await api.scenarios();
+      const [data, personaData] = await Promise.all([
+        api.scenarios(),
+        api.personas().catch(() => ({ personas: PERSONAS })),
+      ]);
       const list = data.scenarios || [];
+      const personaList = personaData.personas?.length ? personaData.personas : PERSONAS;
+      setPersonas(personaList);
       setScenarios(list);
       setScenarioId((prev) =>
         list.some((s) => s.id === prev) ? prev : list.find((s) => s.id === "free")?.id || list[0]?.id || ""
       );
+      const initial = list.find((s) => s.id === "free") || list[0];
+      if (initial?.persona) setPersonaId(initial.persona);
     } catch (e) {
       toast(`Stsenariylar yuklanmadi: ${e.message}`, "error");
     } finally {
@@ -89,7 +106,9 @@ export default function CallScreen({
         text,
         { tr: questionRef.current || "Jonli suhbat", uz: "" },
         "call",
-        sc?.id || ""
+        sc?.id || "",
+        personaId,
+        level || ""
       );
       const turn = {
         user: data.transcription || text,
@@ -101,16 +120,18 @@ export default function CallScreen({
         level_score: data.level_score || "A1",
         mistakes: data.mistakes || [],
         phrases: data.useful_phrases || [],
+        pronunciation_score: data.pronunciation_score,
       };
       turnsRef.current = [...turnsRef.current, turn];
       setHistory([...turnsRef.current].reverse());
       questionRef.current = turn.aylin || questionRef.current;
+      trackMission("grammar");
       return turn;
     } catch (e) {
       toast(`Javob tahlil qilinmadi: ${e.message}`, "error");
       return null;
     }
-  }, []);
+  }, [level, personaId]);
 
   const onTurnWithSpeech = useCallback(
     async (text) => {
@@ -201,11 +222,18 @@ export default function CallScreen({
 
   const finish = () => {
     creditTime();
+    if (turnsRef.current.length) trackMission("call");
     sessionRef.current += 1;
     call.end();
     stopTTS?.();
     setShowUz(false);
     runReport();
+  };
+
+  const chooseScenario = (id) => {
+    setScenarioId(id);
+    const scenario = scenarios.find((item) => item.id === id);
+    if (scenario?.persona) setPersonaId(scenario.persona);
   };
 
   const restart = () => {
@@ -233,8 +261,11 @@ export default function CallScreen({
     return (
       <ScenarioPicker
         scenarios={scenarios}
+        personas={personas}
         selected={scenarioId}
-        onSelect={setScenarioId}
+        personaId={personaId}
+        onSelect={chooseScenario}
+        onPersona={setPersonaId}
         onStart={startCall}
         onBack={leave}
         loading={loadingScenarios}
@@ -276,9 +307,9 @@ export default function CallScreen({
       : "";
   const placeholder =
     call.callState === "listening"
-      ? "Gapiring — Aylin Hoca tinglaydi"
+      ? `Gapiring — ${selectedPersona.name} tinglaydi`
       : call.callState === "thinking"
-        ? "Aylin Hoca o'ylayapti"
+        ? `${selectedPersona.name} o'ylayapti`
         : call.muted
           ? "Mikrofon o'chirilgan"
           : isSpeaking
@@ -288,6 +319,8 @@ export default function CallScreen({
               : "Suhbat tayyor";
   const meta = STATUS[call.callState] || STATUS.idle;
   const orbMode = call.muted ? "muted" : call.callState === "idle" && starting ? "thinking" : call.callState;
+  const waveMode = isSpeaking ? "speaking" : call.callState === "listening" ? "listening" : "idle";
+  const latestPron = latest?.pronunciation_score;
 
   return (
     <div className="call-screen fixed inset-0 z-[80] flex flex-col overflow-hidden">
@@ -305,7 +338,7 @@ export default function CallScreen({
           <p className="mt-1 text-[11px] font-medium tabular-nums text-zinc-400">{fmt(call.seconds)}</p>
         </div>
 
-        <div className="flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 text-[10px] font-medium text-zinc-500">
+        <div className={`flex h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[10px] font-medium backdrop-blur-xl ${meta.text || "text-zinc-500"}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${meta.dot} ${call.callState !== "idle" ? "animate-pulse" : ""}`} />
           {meta.label}
         </div>
@@ -314,18 +347,45 @@ export default function CallScreen({
       <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-5 py-4 text-center sm:px-8">
         <GlowingOrb mode={orbMode} />
 
-        <h1 className="mt-7 text-[22px] font-semibold tracking-[-0.03em] text-zinc-50 sm:text-[24px]">
-          Aylin Hoca
+        <h1 className="mt-6 text-[22px] font-semibold tracking-[-0.03em] text-zinc-50 sm:text-[24px]">
+          {selectedPersona.name}
         </h1>
         <p className="mt-1 flex items-center gap-1.5 text-[11px] text-zinc-500">
+          <span>{selectedPersona.role}</span>
+          <span className="text-zinc-700">·</span>
           <span>{selected?.title_uz}</span>
           <span className="text-zinc-700">·</span>
           <span className="tabular-nums">{selected?.level}</span>
         </p>
 
-        <Captions text={captionText} placeholder={placeholder} speaking={isSpeaking} className="mt-6 max-w-2xl" />
+        <Captions
+          text={captionText}
+          placeholder={placeholder}
+          speaking={isSpeaking}
+          className="mt-5 max-w-2xl"
+          vocab={vocab}
+          playTTS={playTTS}
+        />
 
-        <div className="mt-3 flex items-center gap-2 text-[10px] text-zinc-600">
+        <div className="wave-shell mt-2 h-10 w-full max-w-md opacity-80">
+          <Waveform getAnalyser={call.getAnalyser} active={call.callState === "listening" || isSpeaking} mode={waveMode} />
+        </div>
+
+        {latest && latestPron != null && (
+          <button
+            type="button"
+            onClick={() => setShowUz(true)}
+            className="feedback-pill mt-1 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] py-1 pl-1 pr-3 text-left backdrop-blur-xl transition hover:bg-white/[0.08]"
+          >
+            <PronunciationRing score={latestPron} size={38} label="Talaffuz" showLabel={false} />
+            <span className="text-[10px] font-medium text-zinc-200">
+              {latest.mistakes?.length ? `${latest.mistakes.length} ta tuzatish` : "Grammatika toza"}
+            </span>
+            <Icon name="chart" size={11} className="text-zinc-500" />
+          </button>
+        )}
+
+        <div className="mt-2 flex items-center gap-2 text-[10px] text-zinc-600">
           <Icon name="volume" size={12} />
           <span>Emel Neural · tr-TR</span>
         </div>
@@ -334,7 +394,7 @@ export default function CallScreen({
       {showUz && (
         <div className="fixed inset-x-3 bottom-[112px] z-30 mx-auto max-h-[52dvh] max-w-lg overflow-y-auto rounded-2xl call-sheet p-4 sm:inset-x-auto sm:left-1/2 sm:w-[440px] sm:-translate-x-1/2">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">Tarjima va maslahat</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">Tarjima va grammatika</p>
             <button
               onClick={() => setShowUz(false)}
               className="rounded-md p-1 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
@@ -345,9 +405,23 @@ export default function CallScreen({
           </div>
 
           <div className="mt-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
-            <p className="text-[13px] font-medium leading-relaxed text-zinc-100">{currentTr}</p>
+            <p className="text-[13px] font-medium leading-relaxed text-zinc-100">
+              <ClickableText text={currentTr} context={currentUz} vocab={vocab} playTTS={playTTS} />
+            </p>
             <p className="mt-1 text-[12px] leading-relaxed text-zinc-500">{currentUz || "Tarjima tayyorlanmoqda"}</p>
           </div>
+
+          {latest && (
+            <div className="mt-3">
+              <GrammarPanel
+                mistakes={latest.mistakes || []}
+                pronunciation={latest.pronunciation_score}
+                transcription={latest.user}
+                vocab={vocab}
+                compact
+              />
+            </div>
+          )}
 
           <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600">
             Shunday javob berishingiz mumkin
@@ -364,7 +438,9 @@ export default function CallScreen({
                   className="flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2"
                 >
                   <div className="min-w-0 flex-1 text-left">
-                    <p className="text-[12px] font-medium leading-snug text-zinc-200">{hint.tr}</p>
+                    <p className="text-[12px] font-medium leading-snug text-zinc-200">
+                      <ClickableText text={hint.tr} context={hint.uz} vocab={vocab} playTTS={playTTS} />
+                    </p>
                     <p className="mt-0.5 text-[10px] leading-snug text-zinc-500">{hint.uz}</p>
                   </div>
                   <button

@@ -25,12 +25,20 @@ export default function ToastHost({ elevated = false }) {
       {items.map((item) => (
         <div
           key={item.id}
-          className="toast-in pointer-events-auto flex max-w-sm items-start gap-2.5 rounded-xl border border-white/10 bg-[#18181b]/95 px-3.5 py-2.5 text-[13px] leading-snug text-zinc-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,.8)] backdrop-blur-xl"
+          className={`toast-in pointer-events-auto flex max-w-sm items-start gap-2.5 rounded-xl border bg-[#101a14]/95 px-3.5 py-2.5 text-[13px] leading-snug text-zinc-200 shadow-[0_20px_60px_-15px_rgba(0,0,0,.8)] backdrop-blur-xl ${
+            item.tone === "error"
+              ? "border-rose-300/20"
+              : item.tone === "success"
+                ? "border-mint-300/25"
+                : "border-white/10"
+          }`}
         >
           <Icon
             name={item.tone === "error" ? "alert" : item.tone === "success" ? "checkCircle" : "info"}
             size={15}
-            className="mt-0.5 shrink-0 text-zinc-400"
+            className={`mt-0.5 shrink-0 ${
+              item.tone === "error" ? "text-rose-200" : item.tone === "success" ? "text-mint-200" : "text-zinc-400"
+            }`}
           />
           <span>{item.message}</span>
         </div>

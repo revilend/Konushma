@@ -60,11 +60,15 @@ export default function Waveform({ getAnalyser, active = false, mode = "idle" })
         const x = index * gap + gap * 0.22;
         const y = center - barHeight / 2;
         const barWidth = gap * 0.56;
-        const alpha = mode === "speaking" ? 0.82 : mode === "listening" ? 0.7 : 0.28;
+        const speaking = mode === "speaking";
+        const listening = mode === "listening";
+        const stopTop = speaking ? "253, 230, 138" : listening ? "167, 243, 208" : "161, 161, 170";
+        const stopBottom = speaking ? "251, 146, 60" : listening ? "94, 234, 212" : "113, 113, 122";
+        const alpha = speaking ? 0.9 : listening ? 0.82 : 0.3;
 
         const gradient = context.createLinearGradient(x, y, x, y + barHeight);
-        gradient.addColorStop(0, `rgba(250, 250, 250, ${alpha})`);
-        gradient.addColorStop(1, `rgba(161, 161, 170, ${alpha * 0.35})`);
+        gradient.addColorStop(0, `rgba(${stopTop}, ${alpha})`);
+        gradient.addColorStop(1, `rgba(${stopBottom}, ${alpha * 0.45})`);
         context.fillStyle = gradient;
 
         context.beginPath();

@@ -9,11 +9,16 @@ import StreakCard from "./components/StreakCard";
 import SpeedControl from "./components/SpeedControl";
 import ApiKeyModal from "./components/ApiKeyModal";
 import ToastHost from "./components/ToastHost";
+import LevelCard from "./components/LevelCard";
+import MissionsCard from "./components/MissionsCard";
+import LevelTest from "./components/LevelTest";
 import Icon from "./components/Icons";
 import { useRecorder } from "./lib/useRecorder";
 import { useVocabulary } from "./lib/useVocabulary";
 import { useStreak } from "./lib/useStreak";
 import { useApiKey } from "./lib/useApiKey";
+import { useLevel } from "./lib/useLevel";
+import { trackMission } from "./lib/missions";
 import { api } from "./lib/api";
 import { toast } from "./lib/toast";
 
@@ -31,6 +36,7 @@ export default function App() {
   const [manualText, setManualText] = useState("");
   const [showManual, setShowManual] = useState(false);
   const [keyOpen, setKeyOpen] = useState(false);
+  const [levelTestOpen, setLevelTestOpen] = useState(false);
   const [speed, setSpeed] = useState(() => {
     const saved = Number(localStorage.getItem("tp-speed"));
     return SPEEDS.includes(saved) ? saved : 1.0;
@@ -41,6 +47,7 @@ export default function App() {
   const vocab = useVocabulary();
   const streak = useStreak();
   const apiKey = useApiKey();
+  const levelState = useLevel();
   const { addSeconds } = streak;
   const speedRef = useRef(speed);
   const immersive = view === "call" && callStage === "call";
@@ -121,6 +128,14 @@ export default function App() {
     setSpeaking(false);
   }, []);
 
+  const handleSessionSeconds = useCallback(
+    (seconds) => {
+      addSeconds(seconds);
+      trackMission("speak", seconds);
+    },
+    [addSeconds]
+  );
+
   const submit = useCallback(
     async (manualOverride) => {
       const wasRecording = rec.recording;
@@ -131,21 +146,25 @@ export default function App() {
         toast("Javob topilmadi. Gapiring yoki matn yozib yuboring.", "error");
         return;
       }
-      if (elapsed > 0) addSeconds(elapsed);
+      if (elapsed > 0) {
+        addSeconds(elapsed);
+        trackMission("speak", elapsed);
+      }
       setManualText("");
       setShowManual(false);
       setPhase("analyzing");
       try {
-        const result = await api.analyze(text, question, mode);
+        const result = await api.analyze(text, question, mode, "", "aylin", levelState.level || "");
         setAnalysis(result);
         setPhase("result");
+        trackMission("grammar");
         if (result.model_answer_tr) playTTS(result.model_answer_tr);
       } catch (e) {
         setPhase("ready");
         toast(`Tahlil qilinmadi: ${e.message}`, "error");
       }
     },
-    [rec, manualText, question, mode, playTTS, addSeconds]
+    [rec, manualText, question, mode, playTTS, addSeconds, levelState.level]
   );
 
   const next = useCallback(async () => {
@@ -165,6 +184,14 @@ export default function App() {
     }
   }, [rec, submit]);
 
+  const handleLevelComplete = useCallback(
+    (nextLevel, score) => {
+      levelState.save(nextLevel, score);
+      toast(`Darajangiz aniqlandi: ${nextLevel}. Mashqlar shunga moslashadi.`, "success");
+    },
+    [levelState]
+  );
+
   const busy = phase === "analyzing";
 
   return (
@@ -177,6 +204,7 @@ export default function App() {
           streakCount={streak.streak}
           onApiKey={() => setKeyOpen(true)}
           hasApiKey={apiKey.hasKey}
+          level={levelState.level}
         />
       )}
 
@@ -186,116 +214,160 @@ export default function App() {
             ? "p-0"
             : view === "call"
               ? "max-w-3xl px-3 pb-20 pt-5 sm:px-5 sm:pt-6"
-              : "max-w-4xl px-3 pb-16 pt-6 sm:px-5 sm:pt-8"
+              : "max-w-6xl px-3 pb-16 pt-6 sm:px-5 sm:pt-8"
         }`}
       >
         {view === "sim" && (
           <div className="fade-up">
-            <section className="mb-6 flex flex-col gap-5 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="eyebrow">Speaking studio</p>
-                <h1 className="mt-2 max-w-xl text-[26px] font-semibold leading-[1.15] tracking-[-0.035em] text-zinc-50 sm:text-[32px]">
-                  Har kuni bir oz
-                  <span className="text-zinc-500"> ko&apos;proq gapiring.</span>
-                </h1>
-                <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-zinc-500">
-                  Aylin Hoca bilan turkcha suhbat. Javobingizni tahlil qiladi va keyingi qadamni ko&apos;rsatadi.
-                </p>
-              </div>
-              <div className="segmented shrink-0 self-start sm:self-auto" role="group" aria-label="Mashq rejimi">
-                <button aria-pressed={mode === "practice"} onClick={() => setMode("practice")}>
-                  Mashq
-                </button>
-                <button aria-pressed={mode === "exam"} onClick={() => setMode("exam")}>
-                  Imtihon
-                </button>
+            <section className="studio-hero relative mb-5 overflow-hidden rounded-[28px] p-5 sm:mb-6 sm:p-7">
+              <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <div className="max-w-xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="hero-pill"><span className="h-1.5 w-1.5 rounded-full bg-mint-300" /> Speaking studio</span>
+                    <span className="hero-pill">3 personaj</span>
+                    <span className="hero-pill">Smart lug&apos;at</span>
+                  </div>
+                  <h1 className="mt-3 text-[28px] font-semibold leading-[1.08] tracking-[-0.045em] text-zinc-50 sm:text-[36px]">
+                    Har kuni bir oz
+                    <br />
+                    <span className="text-aurora">ko&apos;proq gapiring.</span>
+                  </h1>
+                  <p className="mt-2 max-w-lg text-[12px] leading-relaxed text-zinc-400 sm:text-[13px]">
+                    Jonli personajlar, grammatika tahlilchisi va talaffuz bahosi — barchasi bitta suhbatda.
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2 self-start sm:self-auto">
+                  <div className="segmented" role="group" aria-label="Mashq rejimi">
+                    <button aria-pressed={mode === "practice"} onClick={() => setMode("practice")}>
+                      Mashq
+                    </button>
+                    <button aria-pressed={mode === "exam"} onClick={() => setMode("exam")}>
+                      Imtihon
+                    </button>
+                  </div>
+                </div>
               </div>
             </section>
 
-            <StreakCard streak={streak} />
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="min-w-0 space-y-3">
+                <StreakCard streak={streak} />
 
-            {cfg?.setup_needed && !apiKey.hasKey && (
-              <div className="surface mt-4 flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-zinc-400">
-                  <Icon name="key" size={15} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-medium text-zinc-200">Aylin Hocani yoqing</p>
-                  <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
-                    Gemini API kalitini kiriting. Kalit faqat brauzeringizda saqlanadi.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setKeyOpen(true)}
-                  className="shrink-0 rounded-lg border border-white/10 bg-white/[0.06] px-3.5 py-2 text-[12px] font-medium text-zinc-200 transition hover:bg-white/[0.1]"
-                >
-                  Kalit kiritish
-                </button>
-              </div>
-            )}
-
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 px-1">
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600">
-                Aylin Hocaning ovoz tezligi
-              </p>
-              <SpeedControl value={speed} onChange={setSpeed} compact />
-            </div>
-
-            <div className="mt-3">
-              {phase !== "result" ? (
-                <>
-                  <QuestionCard question={question} speaking={speaking} onPlay={() => playTTS(question?.tr)} />
-                  <RecorderBar
-                    supported={rec.supported}
-                    recording={rec.recording}
-                    interim={rec.interim}
-                    seconds={rec.seconds}
-                    disabled={busy}
-                    getAnalyser={rec.getAnalyser}
-                    onToggle={toggleRecord}
-                    onSubmit={() => submit()}
-                    manualText={manualText}
-                    setManualText={setManualText}
-                    showManual={showManual}
-                    setShowManual={setShowManual}
-                  />
-                  {busy && (
-                    <div className="surface mt-3 flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-[12px] text-zinc-400">
-                      <span className="h-3.5 w-3.5 animate-spin rounded-full border border-zinc-500 border-t-zinc-100" />
-                      Aylin Hoca javobingizni tahlil qilyapti
+                {cfg?.setup_needed && !apiKey.hasKey && (
+                  <div className="api-banner flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-amber-300/15 text-amber-200">
+                      <Icon name="key" size={15} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-medium text-zinc-100">Aylin Hocani yoqing</p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-zinc-500">
+                        Gemini API kalitini kiriting. Kalit faqat brauzeringizda saqlanadi.
+                      </p>
                     </div>
+                    <button
+                      onClick={() => setKeyOpen(true)}
+                      className="shrink-0 rounded-xl border border-white/10 bg-white/[0.06] px-3.5 py-2 text-[12px] font-medium text-zinc-200 transition hover:bg-white/[0.1]"
+                    >
+                      Kalit kiritish
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between gap-2 px-1 pt-1">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-600">
+                    Aylin Hocaning ovoz tezligi
+                  </p>
+                  <SpeedControl value={speed} onChange={setSpeed} compact />
+                </div>
+
+                <div>
+                  {phase !== "result" ? (
+                    <>
+                      <QuestionCard
+                        question={question}
+                        speaking={speaking}
+                        onPlay={() => playTTS(question?.tr)}
+                        vocab={vocab}
+                        playTTS={playTTS}
+                      />
+                      <RecorderBar
+                        supported={rec.supported}
+                        recording={rec.recording}
+                        interim={rec.interim}
+                        seconds={rec.seconds}
+                        disabled={busy}
+                        getAnalyser={rec.getAnalyser}
+                        onToggle={toggleRecord}
+                        onSubmit={() => submit()}
+                        manualText={manualText}
+                        setManualText={setManualText}
+                        showManual={showManual}
+                        setShowManual={setShowManual}
+                      />
+                      {busy && (
+                        <div className="surface mt-3 flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-[12px] text-zinc-400">
+                          <span className="h-3.5 w-3.5 animate-spin rounded-full border border-zinc-500 border-t-mint-300" />
+                          Aylin Hoca javobingizni tahlil qilyapti
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <ResultPanel
+                      analysis={analysis}
+                      speaking={speaking}
+                      onPlayAnswer={() => playTTS(analysis?.model_answer_tr)}
+                      onNext={next}
+                      busy={busy}
+                      vocab={vocab}
+                      playTTS={playTTS}
+                    />
                   )}
-                </>
-              ) : (
-                <ResultPanel
-                  analysis={analysis}
-                  speaking={speaking}
-                  onPlayAnswer={() => playTTS(analysis?.model_answer_tr)}
-                  onNext={next}
-                  busy={busy}
-                  vocab={vocab}
-                  playTTS={playTTS}
+                </div>
+              </div>
+
+              <aside className="space-y-3">
+                <LevelCard
+                  level={levelState.level}
+                  score={levelState.score}
+                  onOpen={() => setLevelTestOpen(true)}
                 />
-              )}
+                <MissionsCard />
+                <section className="smart-card surface rounded-3xl p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="grid h-7 w-7 place-items-center rounded-lg bg-sky-300/10 text-sky-200">
+                      <Icon name="languages" size={13} />
+                    </span>
+                    <h3 className="text-[12px] font-semibold text-zinc-100">Smart lug&apos;at</h3>
+                  </div>
+                  <p className="mt-2 text-[10px] leading-relaxed text-zinc-500">
+                    Suhbatdagi har qanday turkcha so&apos;zni bosing — tarjimasi, misoli va talaffuzi darhol chiqadi.
+                  </p>
+                  <div className="mt-2 rounded-xl border border-white/[0.06] bg-white/[0.025] px-3 py-2 text-[11px] text-zinc-400">
+                    <span className="word-tap-example">Merhaba</span>, bugün nasılsın?
+                  </div>
+                </section>
+              </aside>
             </div>
           </div>
         )}
 
-        {view === "vocab" && (
-          <VocabularyPage vocab={vocab} playTTS={playTTS} onBack={() => setView("sim")} />
-        )}
+        {view === "vocab" && <VocabularyPage vocab={vocab} playTTS={playTTS} onBack={() => setView("sim")} />}
 
         {view === "call" && (
           <CallScreen
-            onExit={() => setView("sim")}
+            onExit={() => {
+              setCallStage("setup");
+              setView("sim");
+            }}
             onVocab={() => setView("vocab")}
             playTTS={playTTS}
             stopTTS={stopTTS}
             vocab={vocab}
             speed={speed}
             setSpeed={setSpeed}
-            onSessionSeconds={addSeconds}
+            onSessionSeconds={handleSessionSeconds}
             onStageChange={setCallStage}
+            level={levelState.level}
           />
         )}
 
@@ -312,6 +384,11 @@ export default function App() {
         onClose={() => setKeyOpen(false)}
         apiKey={apiKey}
         onSaved={handleKeySaved}
+      />
+      <LevelTest
+        open={levelTestOpen}
+        onClose={() => setLevelTestOpen(false)}
+        onComplete={handleLevelComplete}
       />
       <ToastHost elevated={immersive} />
     </div>

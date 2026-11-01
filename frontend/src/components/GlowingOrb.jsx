@@ -1,5 +1,5 @@
 /**
- * Monoxrom golografik ovoz shari.
+ * Yumshoq gradientli golografik ovoz shari.
  * mode: idle | listening | thinking | speaking | muted
  */
 export default function GlowingOrb({ mode = "idle", size = "lg" }) {

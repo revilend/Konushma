@@ -2,10 +2,12 @@
 
 BUYRUQLAR:
   POST /api/analyze    -> javob tahlili (transcription + savol konteksti)
-  POST /api/report     -> qo'ng'iroq yakuni bo'yicha hisobot (CEFR + 3 mezon)
+  POST /api/report     -> qo'ng'iroq yakuni bo'yicha hisobot (CEFR + 4 mezon)
   GET  /api/tts        -> matnni mp3 ovozga aylantiradi (tr-TR-EmelNeural)
   GET  /api/question   -> tasodifiy suhbat savoli
   GET  /api/scenarios  -> mavzuli muloqot stsenariylari
+  GET  /api/personas   -> Aylin, Mehmet va Emre personajlari
+  POST /api/translate-word -> kontekstli so'z tarjimasi
   GET  /api/config     -> AI provider holati (setup tekshiruvi)
 """
 import logging
@@ -17,10 +19,12 @@ from pydantic import BaseModel, Field
 
 from .config import TTS_PITCH, TTS_RATE, TTS_VOICE, ai_provider
 from .services.analysis import analyze
+from .services.personas import list_personas
 from .services.questions import random_question
 from .services.report import build_report
 from .services.scenarios import list_scenarios
 from .services.tts_service import synth
+from .services.wordbook import translate_word
 
 logging.basicConfig(level=logging.INFO)
 
@@ -44,11 +48,19 @@ class AnalyzeRequest(BaseModel):
     question_uz: str = Field(default="", max_length=1500)
     mode: str = Field(default="practice", pattern="^(practice|exam|call)$")
     scenario: str = Field(default="", max_length=40)
+    persona: str = Field(default="aylin", max_length=40)
+    level: str = Field(default="", max_length=8)
+
+
+class TranslateRequest(BaseModel):
+    word: str = Field(min_length=1, max_length=80)
+    context: str = Field(default="", max_length=600)
 
 
 class ReportTurn(BaseModel):
     user: str = Field(min_length=1, max_length=2000)
     aylin: str = Field(default="", max_length=2000)
+    pronunciation_score: int | None = Field(default=None, ge=0, le=100)
 
 
 class ReportMistake(BaseModel):
@@ -82,9 +94,22 @@ async def config(x_gemini_key: str | None = Header(default=None, alias="X-Gemini
     }
 
 
+@app.get("/api/personas")
+async def personas():
+    return {"personas": list_personas()}
+
+
 @app.get("/api/scenarios")
 async def scenarios():
     return {"scenarios": list_scenarios()}
+
+
+@app.post("/api/translate-word")
+async def translate_word_route(
+    req: TranslateRequest,
+    x_gemini_key: str | None = Header(default=None, alias="X-Gemini-Key"),
+):
+    return await translate_word(req.word, req.context, x_gemini_key)
 
 
 @app.get("/api/question")
@@ -107,7 +132,14 @@ async def analyze_route(
         )
     try:
         result = await analyze(
-            req.transcription, req.question_tr, req.question_uz, req.mode, req.scenario, x_gemini_key
+            req.transcription,
+            req.question_tr,
+            req.question_uz,
+            req.mode,
+            req.scenario,
+            x_gemini_key,
+            req.persona,
+            req.level,
         )
     except Exception as exc:
         logging.exception("Tahlil xatosi")

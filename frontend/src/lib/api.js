@@ -31,12 +31,14 @@ async function handle(res) {
 export const api = {
   config: () => fetch(`${BASE}/api/config`, { headers: withKey() }).then(handle),
 
+  personas: () => fetch(`${BASE}/api/personas`).then(handle),
+
   scenarios: () => fetch(`${BASE}/api/scenarios`).then(handle),
 
   question: (excludeId) =>
     fetch(`${BASE}/api/question${excludeId ? `?exclude=${excludeId}` : ""}`).then(handle),
 
-  analyze: (transcription, question, mode, scenario = "") =>
+  analyze: (transcription, question, mode, scenario = "", persona = "aylin", level = "") =>
     fetch(`${BASE}/api/analyze`, {
       method: "POST",
       headers: withKey({ "Content-Type": "application/json" }),
@@ -46,7 +48,16 @@ export const api = {
         question_uz: question.uz || "",
         mode,
         scenario,
+        persona,
+        level,
       }),
+    }).then(handle),
+
+  translateWord: (word, context = "") =>
+    fetch(`${BASE}/api/translate-word`, {
+      method: "POST",
+      headers: withKey({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ word, context }),
     }).then(handle),
 
   report: (payload) =>

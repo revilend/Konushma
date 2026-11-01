@@ -2,13 +2,23 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --color-mint-50: #ecfdf5;
+  --color-mint-100: #d1fae5;
+  --color-mint-200: #a7f3d0;
+  --color-mint-300: #6ee7b7;
+  --color-mint-400: #34d399;
+  --color-mint-500: #10b981;
+}
+
 :root {
   color-scheme: dark;
-  --bg: #09090b;
-  --bg-elevated: #121215;
-  --fg: #fafafa;
-  --muted: #a1a1aa;
-  --line: rgba(255, 255, 255, 0.08);
+  --bg: #070b09;
+  --bg-elevated: #0d1410;
+  --fg: #f7faf7;
+  --muted: #9aa8a0;
+  --line: rgba(255, 255, 255, 0.085);
 }
 
 * {
@@ -26,7 +36,7 @@ body {
   min-width: 320px;
   background: var(--bg);
   color: var(--fg);
-  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -43,35 +53,37 @@ button {
 }
 
 ::selection {
-  background: rgba(250, 250, 250, 0.18);
+  background: rgba(110, 231, 183, 0.28);
   color: #fff;
 }
 
 :focus-visible {
-  outline: 1px solid rgba(250, 250, 250, 0.45);
+  outline: 1.5px solid rgba(167, 243, 208, 0.65);
   outline-offset: 2px;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.13);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.22);
 }
 
-/* ── Fon ─────────────────────────────────────── */
+/* ── Fon: yumshoq aurora ─────────────────────── */
 .app-canvas {
   background:
-    radial-gradient(ellipse 70% 45% at 50% -12%, rgba(255, 255, 255, 0.045), transparent 65%),
-    #09090b;
+    radial-gradient(ellipse 58% 42% at 8% -8%, rgba(52, 211, 153, 0.16), transparent 58%),
+    radial-gradient(ellipse 48% 36% at 96% 0%, rgba(251, 191, 36, 0.1), transparent 62%),
+    radial-gradient(ellipse 52% 42% at 48% 108%, rgba(56, 189, 248, 0.08), transparent 62%),
+    #070b09;
 }
 
 .app-canvas::before {
@@ -80,62 +92,351 @@ button {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.022;
+  opacity: 0.025;
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.7) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.7) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, black, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, black, transparent 75%);
+  background-size: 58px 58px;
+  mask-image: radial-gradient(ellipse 80% 65% at 50% 0%, black, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 65% at 50% 0%, black, transparent 78%);
 }
 
-/* ── Sirt va tugmalar ─────────────────────────── */
+/* ── Sirtlar va tipografiya ───────────────────── */
 .surface {
-  background: rgba(24, 24, 27, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: linear-gradient(155deg, rgba(34, 46, 39, 0.72), rgba(15, 23, 18, 0.68));
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 28px 70px -52px rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 }
 
 .eyebrow {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #71717a;
+  color: #78877f;
+}
+
+.text-aurora {
+  background: linear-gradient(96deg, #f0fdf4 0%, #a7f3d0 34%, #fde68a 70%, #fbcfe8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.045);
+  padding: 4px 9px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #aab8b0;
+  backdrop-filter: blur(12px);
+}
+
+/* ── Hero panellar ───────────────────────────── */
+.studio-hero,
+.voice-hero {
+  position: relative;
+  border: 1px solid rgba(167, 243, 208, 0.15);
+  background:
+    radial-gradient(ellipse 60% 120% at 100% 0%, rgba(251, 191, 36, 0.14), transparent 60%),
+    radial-gradient(ellipse 60% 130% at 0% 100%, rgba(56, 189, 248, 0.1), transparent 60%),
+    linear-gradient(125deg, rgba(110, 231, 183, 0.13), rgba(19, 30, 24, 0.86) 48%, rgba(26, 25, 18, 0.78));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 40px 100px -55px rgba(16, 185, 129, 0.45);
+}
+
+.studio-hero::after,
+.voice-hero::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -90px;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(253, 230, 138, 0.22), transparent 68%);
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+.voice-hero {
+  background:
+    radial-gradient(ellipse 55% 120% at 100% 0%, rgba(167, 243, 208, 0.17), transparent 62%),
+    radial-gradient(ellipse 55% 120% at 0% 100%, rgba(251, 191, 36, 0.11), transparent 60%),
+    linear-gradient(125deg, rgba(25, 42, 33, 0.94), rgba(13, 22, 17, 0.88));
+}
+
+.api-banner {
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  background: linear-gradient(120deg, rgba(251, 191, 36, 0.1), rgba(251, 113, 133, 0.045) 55%, rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
+}
+
+.smart-card {
+  background:
+    radial-gradient(ellipse 90% 100% at 100% 0%, rgba(56, 189, 248, 0.12), transparent 65%),
+    linear-gradient(150deg, rgba(28, 42, 39, 0.75), rgba(14, 22, 19, 0.68));
+}
+
+.level-card {
+  background:
+    radial-gradient(ellipse 80% 100% at 100% 0%, rgba(251, 191, 36, 0.14), transparent 65%),
+    linear-gradient(150deg, rgba(39, 40, 28, 0.7), rgba(16, 23, 18, 0.7));
+}
+
+.vocab-hero {
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  background:
+    radial-gradient(ellipse 60% 130% at 100% 0%, rgba(251, 191, 36, 0.16), transparent 60%),
+    radial-gradient(ellipse 55% 120% at 0% 100%, rgba(110, 231, 183, 0.1), transparent 60%),
+    linear-gradient(125deg, rgba(39, 36, 24, 0.9), rgba(13, 22, 17, 0.86));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 40px 100px -60px rgba(251, 191, 36, 0.4);
+}
+
+.flashcard-shell {
+  background: linear-gradient(145deg, rgba(167, 243, 208, 0.5), rgba(253, 230, 138, 0.28) 48%, rgba(125, 211, 252, 0.3));
+  box-shadow: 0 30px 80px -42px rgba(110, 231, 183, 0.45);
+}
+.flashcard-shell .surface {
+  background: linear-gradient(160deg, #111d16, #0a120e);
+}
+
+/* ── Tugmalar ────────────────────────────────── */
+.btn-primary {
+  background: linear-gradient(135deg, #bef264 0%, #6ee7b7 50%, #5eead4 100%);
+  color: #06130d;
+  box-shadow:
+    0 14px 34px -16px rgba(110, 231, 183, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: transform 0.16s ease, filter 0.18s ease, box-shadow 0.18s ease;
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 18px 42px -16px rgba(110, 231, 183, 0.7);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
 }
 
 .segmented {
   display: inline-flex;
   padding: 3px;
   gap: 2px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 15, 12, 0.4);
+  backdrop-filter: blur(12px);
 }
 
 .segmented button {
-  border-radius: 7px;
-  padding: 5px 12px;
+  border-radius: 9px;
+  padding: 5px 13px;
   font-size: 11px;
-  font-weight: 500;
-  color: #71717a;
+  font-weight: 600;
+  color: #78877f;
   transition: color 0.18s ease, background 0.18s ease;
 }
 
 .segmented button:hover {
-  color: #d4d4d8;
+  color: #d1fae5;
 }
 
 .segmented button[aria-pressed="true"] {
-  background: rgba(255, 255, 255, 0.09);
-  color: #fafafa;
+  background: linear-gradient(135deg, rgba(190, 242, 100, 0.92), rgba(110, 231, 183, 0.92));
+  color: #06130d;
+  box-shadow: 0 4px 14px -6px rgba(110, 231, 183, 0.6);
 }
 
-/* ── Golografik ovoz shari (monoxrom) ─────────── */
+/* ── Jonli so'zlar ───────────────────────────── */
+.word-tap {
+  display: inline;
+  border: 0;
+  padding: 0 1px;
+  margin: 0 -1px;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(167, 243, 208, 0.28);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.word-tap:hover {
+  background: rgba(110, 231, 183, 0.16);
+  color: #ecfdf5;
+  text-decoration-color: transparent;
+}
+.word-tap-example {
+  border-radius: 4px;
+  background: rgba(110, 231, 183, 0.14);
+  padding: 0 3px;
+  color: #a7f3d0;
+  text-decoration: underline;
+  text-decoration-color: rgba(167, 243, 208, 0.45);
+  text-underline-offset: 2px;
+}
+
+/* ── Talaffuz halqasi ────────────────────────── */
+.pron-ring {
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 22px -14px rgba(0, 0, 0, 0.9);
+}
+.pron-ring-fill {
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+}
+.pron-ring-hole {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: #0b120e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.5);
+}
+.pron-ring-hole strong {
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: #ecfdf5;
+}
+.pron-ring-hole span {
+  margin-top: 2px;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #708078;
+}
+.pron-ring-hole span:empty {
+  display: none;
+}
+
+/* ── Grammatika chiplari ─────────────────────── */
+.type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1px 5px;
+  font-size: 8px;
+  font-weight: 600;
+}
+.type-chip-mint { background: rgba(110, 231, 183, 0.1); color: #a7f3d0; }
+.type-chip-sky { background: rgba(56, 189, 248, 0.1); color: #bae6fd; }
+.type-chip-amber { background: rgba(251, 191, 36, 0.1); color: #fde68a; }
+.type-chip-rose { background: rgba(251, 113, 133, 0.1); color: #fecdd3; }
+
+/* ── Missiyalar ──────────────────────────────── */
+.missions-card {
+  background:
+    radial-gradient(ellipse 85% 100% at 100% 0%, rgba(251, 191, 36, 0.1), transparent 66%),
+    linear-gradient(155deg, rgba(35, 40, 28, 0.7), rgba(14, 22, 18, 0.7));
+}
+.missions-done {
+  border-color: rgba(110, 231, 183, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 30px 70px -50px rgba(16, 185, 129, 0.5);
+}
+.mission-icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 8px;
+}
+.mission-icon-mint { background: rgba(110, 231, 183, 0.11); color: #a7f3d0; }
+.mission-icon-sky { background: rgba(56, 189, 248, 0.11); color: #bae6fd; }
+.mission-icon-amber { background: rgba(251, 191, 36, 0.11); color: #fde68a; }
+.mission-icon-rose { background: rgba(251, 113, 133, 0.11); color: #fecdd3; }
+.mission-icon-violet { background: rgba(196, 181, 253, 0.11); color: #ddd6fe; }
+.mission-bar {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+.mission-bar-mint { background: linear-gradient(90deg, #34d399, #a7f3d0); }
+.mission-bar-sky { background: linear-gradient(90deg, #0ea5e9, #7dd3fc); }
+.mission-bar-amber { background: linear-gradient(90deg, #f59e0b, #fde68a); }
+.mission-bar-rose { background: linear-gradient(90deg, #f43f5e, #fda4af); }
+.mission-bar-violet { background: linear-gradient(90deg, #8b5cf6, #c4b5fd); }
+
+/* ── Daraja natijasi ─────────────────────────── */
+.level-result-ring {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, #6ee7b7, #fde68a, #fda4af, #6ee7b7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 50px -25px rgba(110, 231, 183, 0.5);
+}
+.level-result-ring::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: #0b120e;
+}
+.level-result-ring span,
+.level-result-ring small {
+  position: relative;
+  z-index: 1;
+}
+.level-result-ring span {
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  color: #ecfdf5;
+}
+.level-result-ring small {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8ba097;
+}
+
+/* ── Golografik ovoz shari ───────────────────── */
 .voice-orb {
   position: relative;
-  width: clamp(224px, 34vh, 292px);
+  width: clamp(220px, 32vh, 280px);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -149,9 +450,12 @@ button {
 
 .voice-orb-halo {
   position: absolute;
-  inset: -8%;
+  inset: -10%;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.03) 48%, transparent 70%);
+  background:
+    radial-gradient(circle at 42% 36%, rgba(167, 243, 208, 0.3), transparent 52%),
+    radial-gradient(circle at 62% 68%, rgba(251, 191, 36, 0.16), transparent 58%),
+    radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.12), transparent 70%);
   filter: blur(34px);
   animation: orbHalo 8s ease-in-out infinite;
   z-index: -1;
@@ -163,13 +467,13 @@ button {
   height: 44%;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.98) 0%, rgba(228, 228, 231, 0.72) 17%, transparent 38%),
-    radial-gradient(circle at 65% 72%, rgba(161, 161, 170, 0.42), transparent 55%),
-    radial-gradient(circle at 50% 50%, #52525b 0%, #27272a 52%, #101012 100%);
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.98) 0%, rgba(236, 253, 245, 0.7) 16%, transparent 38%),
+    radial-gradient(circle at 66% 74%, rgba(94, 234, 212, 0.52), transparent 55%),
+    radial-gradient(circle at 50% 50%, #5eead4 0%, #34d399 34%, #0f766e 65%, #07130f 100%);
   box-shadow:
-    inset -14px -18px 34px rgba(0, 0, 0, 0.6),
-    inset 10px 10px 26px rgba(255, 255, 255, 0.12),
-    0 0 54px rgba(255, 255, 255, 0.13),
+    inset -14px -18px 34px rgba(0, 20, 14, 0.6),
+    inset 10px 10px 26px rgba(255, 255, 255, 0.2),
+    0 0 60px rgba(110, 231, 183, 0.25),
     0 24px 80px -20px rgba(0, 0, 0, 0.9);
   animation: orbBreathe 7s ease-in-out infinite;
 }
@@ -179,7 +483,7 @@ button {
   position: absolute;
   inset: 8%;
   border-radius: inherit;
-  background: radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.28), transparent 42%);
+  background: radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.34), transparent 42%);
   mix-blend-mode: screen;
   opacity: 0.7;
 }
@@ -193,92 +497,92 @@ button {
 
 .voice-orb-ring-1 {
   inset: 14%;
-  border-top-color: rgba(255, 255, 255, 0.28);
+  border-top-color: rgba(167, 243, 208, 0.42);
   animation: orbSpin 22s linear infinite;
 }
 .voice-orb-ring-2 {
   inset: 5%;
-  border-right-color: rgba(255, 255, 255, 0.18);
+  border-right-color: rgba(253, 230, 138, 0.25);
   animation: orbSpin 34s linear infinite reverse;
 }
 .voice-orb-ring-3 {
   inset: -4%;
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(125, 211, 252, 0.16);
   animation: orbSpin 46s linear infinite;
 }
 
-.voice-orb-listening .voice-orb-core {
-  animation-duration: 4.4s;
-}
-.voice-orb-listening .voice-orb-halo {
-  animation-duration: 3.4s;
-}
-.voice-orb-listening .voice-orb-ring-1 {
-  animation-duration: 12s;
-}
-.voice-orb-speaking .voice-orb-core {
-  animation-duration: 2.8s;
-}
-.voice-orb-speaking .voice-orb-halo {
-  animation-duration: 2.2s;
-  opacity: 1;
-}
-.voice-orb-speaking .voice-orb-ring-2 {
-  animation-duration: 16s;
-}
-.voice-orb-thinking .voice-orb-core {
-  animation: orbThink 2.6s ease-in-out infinite;
-}
-.voice-orb-thinking .voice-orb-halo {
-  animation-duration: 2.4s;
-}
-.voice-orb-muted {
-  opacity: 0.5;
-  filter: grayscale(1);
-}
+.voice-orb-listening .voice-orb-core { animation-duration: 4.4s; }
+.voice-orb-listening .voice-orb-halo { animation-duration: 3.4s; }
+.voice-orb-listening .voice-orb-ring-1 { animation-duration: 12s; }
+.voice-orb-speaking .voice-orb-core { animation-duration: 2.8s; }
+.voice-orb-speaking .voice-orb-halo { animation-duration: 2.2s; opacity: 1; }
+.voice-orb-speaking .voice-orb-ring-2 { animation-duration: 16s; }
+.voice-orb-thinking .voice-orb-core { animation: orbThink 2.6s ease-in-out infinite; }
+.voice-orb-thinking .voice-orb-halo { animation-duration: 2.4s; }
+.voice-orb-muted { opacity: 0.55; filter: grayscale(0.8); }
 .voice-orb-muted .voice-orb-core,
-.voice-orb-muted .voice-orb-halo {
-  animation-play-state: paused;
-}
+.voice-orb-muted .voice-orb-halo { animation-play-state: paused; }
 
 @keyframes orbBreathe {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.035); }
+  50% { transform: scale(1.04); }
 }
-
 @keyframes orbHalo {
-  0%, 100% { transform: scale(0.96); opacity: 0.65; }
-  50% { transform: scale(1.12); opacity: 1; }
+  0%, 100% { transform: scale(0.96); opacity: 0.7; }
+  50% { transform: scale(1.14); opacity: 1; }
 }
-
 @keyframes orbThink {
   0%, 100% { transform: scale(0.985) rotate(0deg); }
-  50% { transform: scale(1.025) rotate(4deg); }
+  50% { transform: scale(1.03) rotate(4deg); }
 }
-
 @keyframes orbSpin {
   to { transform: rotate(360deg); }
 }
 
-/* ── To‘liq ekranli qo‘ng‘iroq ─────────────────── */
+/* ── To‘liq ekranli qo‘ng‘iroq ────────────────── */
 .call-screen {
   background:
-    radial-gradient(ellipse 60% 42% at 50% 32%, rgba(255, 255, 255, 0.055), transparent 70%),
-    #09090b;
+    radial-gradient(ellipse 62% 42% at 50% 30%, rgba(110, 231, 183, 0.16), transparent 70%),
+    radial-gradient(ellipse 42% 32% at 88% 78%, rgba(251, 191, 36, 0.08), transparent 65%),
+    radial-gradient(ellipse 48% 34% at 10% 86%, rgba(56, 189, 248, 0.08), transparent 65%),
+    #070b09;
+}
+.call-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 0.5px, transparent 0.5px);
+  background-size: 26px 26px;
+  opacity: 0.06;
+  mask-image: radial-gradient(ellipse at center, black, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black, transparent 72%);
+  pointer-events: none;
 }
 
 .call-sheet {
-  background: rgba(18, 18, 21, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(165deg, rgba(21, 33, 27, 0.97), rgba(10, 17, 13, 0.97));
+  border: 1px solid rgba(167, 243, 208, 0.14);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
-  box-shadow: 0 -24px 80px -20px rgba(0, 0, 0, 0.9);
+  box-shadow:
+    0 -24px 80px -20px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   animation: sheetIn 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-
 @keyframes sheetIn {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.wave-shell {
+  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+}
+
+.feedback-pill {
+  box-shadow:
+    0 10px 30px -18px rgba(110, 231, 183, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /* ── iOS uslubidagi dock ──────────────────────── */
@@ -290,7 +594,7 @@ button {
   gap: 7px;
   border: 0;
   background: transparent;
-  color: #71717a;
+  color: #8b9a92;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -303,99 +607,84 @@ button {
   height: 58px;
   place-items: center;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.045);
-  color: #d4d4d8;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.055);
+  color: #d9e7df;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
-
-.dock-btn:hover {
-  color: #a1a1aa;
-}
+.dock-btn:hover { color: #c7d6ce; }
 .dock-btn:hover .dock-btn-icon {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(167, 243, 208, 0.1);
+  border-color: rgba(167, 243, 208, 0.2);
 }
-.dock-btn:active .dock-btn-icon {
-  transform: scale(0.94);
-}
+.dock-btn:active .dock-btn-icon { transform: scale(0.94); }
 .dock-btn-muted .dock-btn-icon,
 .dock-btn-active .dock-btn-icon {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.24);
-  color: #fafafa;
+  background: rgba(110, 231, 183, 0.16);
+  border-color: rgba(167, 243, 208, 0.3);
+  color: #a7f3d0;
 }
 
 .dock-end {
   display: grid;
   width: 60px;
   height: 60px;
-  margin-top: 0;
   place-items: center;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  background: #fafafa;
-  color: #09090b;
-  box-shadow: 0 12px 40px -8px rgba(255, 255, 255, 0.22);
-  transition: transform 0.15s ease, background 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(145deg, #fb7185 0%, #f97316 100%);
+  color: #fff;
+  box-shadow:
+    0 14px 38px -10px rgba(251, 113, 133, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  transition: transform 0.15s ease, filter 0.2s ease;
 }
-.dock-end:hover {
-  background: #fff;
-}
-.dock-end:active {
-  transform: scale(0.94);
-}
+.dock-end:hover { filter: brightness(1.06); }
+.dock-end:active { transform: scale(0.94); }
 
 /* ── To‘lqin ──────────────────────────────────── */
 .wave-canvas {
-  filter: none;
+  filter: drop-shadow(0 0 8px rgba(110, 231, 183, 0.18));
 }
 
 /* ── Toast ────────────────────────────────────── */
 .toast-in {
   animation: toastIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(10px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ── Mikrofon pulsatsiyasi ───────────────────── */
-.mic-pulse {
-  position: relative;
-}
+.mic-pulse { position: relative; }
 .mic-pulse::after {
   content: "";
   position: absolute;
   inset: -7px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(110, 231, 183, 0.5);
   animation: micRing 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   pointer-events: none;
 }
-
 @keyframes micRing {
-  0% { transform: scale(1); opacity: 0.7; }
+  0% { transform: scale(1); opacity: 0.75; }
   80%, 100% { transform: scale(1.35); opacity: 0; }
 }
 
-/* ── Yumshoq paydo bo‘lish ───────────────────── */
+/* ── Paydo bo‘lish ───────────────────────────── */
 .fade-up {
   animation: fadeUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

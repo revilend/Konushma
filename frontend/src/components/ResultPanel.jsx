@@ -1,90 +1,69 @@
 import SaveButton from "./SaveButton";
+import GrammarPanel from "./GrammarPanel";
+import PronunciationRing from "./PronunciationRing";
+import ClickableText from "./ClickableText";
 import Icon from "./Icons";
-
-const TYPE_META = {
-  grammar: { icon: "sparkles", label: "Grammatika" },
-  vocabulary: { icon: "book", label: "Lug'at" },
-  false_friend: { icon: "alert", label: "Soxta do'st" },
-};
 
 export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, busy, vocab, playTTS }) {
   if (!analysis) return null;
-  const { level_score, mistakes, model_answer_tr, positive_note_uz, useful_phrases } = analysis;
+  const {
+    level_score,
+    mistakes = [],
+    model_answer_tr,
+    positive_note_uz,
+    useful_phrases = [],
+    transcription = "",
+    pronunciation_score,
+  } = analysis;
+  const pronunciation = pronunciation_score ?? 0;
 
   return (
     <div className="fade-up space-y-3">
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="surface rounded-2xl p-5">
-          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">Umumiy baho</p>
-          <p className="mt-2 text-[36px] font-semibold leading-none tracking-[-0.04em] text-zinc-50">
+        <div className="surface relative overflow-hidden rounded-3xl p-5">
+          <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-mint-300/10 blur-2xl" />
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">Umumiy daraja</p>
+          <p className="mt-2 text-[40px] font-semibold leading-none tracking-[-0.05em] text-zinc-50">
             {level_score}
           </p>
-          <p className="mt-2 text-[10px] text-zinc-600">CEFR daraja ko&apos;rsatkichi</p>
+          <p className="mt-2 text-[10px] text-zinc-500">CEFR ko&apos;rsatkichi</p>
         </div>
 
-        <div className="surface rounded-2xl p-5 sm:col-span-2">
-          <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
-            <Icon name="message" size={12} />
-            Siz gapirgan javob
+        <div className="surface flex items-center gap-3 rounded-3xl p-4">
+          <PronunciationRing score={pronunciation} size={68} />
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">Talaffuz</p>
+            <p className="mt-1 text-[13px] font-medium text-zinc-100">
+              {pronunciation >= 85 ? "Juda aniq" : pronunciation >= 70 ? "Yaxshi" : "Mashq kerak"}
+            </p>
+            <p className="mt-2 text-[9px] leading-relaxed text-zinc-600">Transkript asosida taxminiy</p>
           </div>
-          <p className="mt-2 text-[13px] leading-relaxed text-zinc-300">{analysis.transcription}</p>
         </div>
-      </div>
 
-      <div className="surface rounded-2xl p-5">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-[13px] font-medium text-zinc-200">Xatolar tahlili</h3>
-          <span className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[10px] tabular-nums text-zinc-500">
+        <div className="surface relative overflow-hidden rounded-3xl p-5">
+          <div className="pointer-events-none absolute -right-8 -bottom-10 h-28 w-28 rounded-full bg-amber-300/10 blur-2xl" />
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">Tuzatishlar</p>
+          <p className="mt-2 text-[40px] font-semibold leading-none tracking-[-0.05em] text-zinc-50">
             {mistakes.length}
-          </span>
+          </p>
+          <p className="mt-2 text-[10px] text-zinc-500">
+            {mistakes.length === 0 ? "Xatosiz javob" : "Grammatika tahlilida"}
+          </p>
         </div>
-
-        {mistakes.length === 0 ? (
-          <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 text-[12px] text-zinc-400">
-            <Icon name="checkCircle" size={14} className="shrink-0 text-zinc-300" />
-            Xato topilmadi — javob aniq va tabiiy.
-          </div>
-        ) : (
-          <ul className="mt-3 space-y-2">
-            {mistakes.map((mistake, index) => {
-              const meta = TYPE_META[mistake.type] || TYPE_META.grammar;
-              return (
-                <li key={index} className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-3.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-1.5 py-0.5 text-[9px] font-medium text-zinc-500">
-                      <Icon name={meta.icon} size={10} />
-                      {meta.label}
-                    </span>
-                    <span className="text-[12px] text-zinc-500 line-through">{mistake.wrong}</span>
-                    <Icon name="arrowRight" size={11} className="text-zinc-600" />
-                    <span className="text-[12px] font-medium text-zinc-100">{mistake.correct}</span>
-                    <span className="ml-auto">
-                      <SaveButton
-                        item={{
-                          tr: mistake.correct,
-                          uz: mistake.explanation_uz,
-                          wrong: mistake.wrong,
-                          type: mistake.type,
-                          source: "Simulyator",
-                        }}
-                        vocab={vocab}
-                        compact
-                      />
-                    </span>
-                  </div>
-                  <p className="mt-2 text-[11px] leading-relaxed text-zinc-500">{mistake.explanation_uz}</p>
-                </li>
-              );
-            })}
-          </ul>
-        )}
       </div>
 
-      <div className="surface rounded-2xl p-5">
+      <GrammarPanel
+        mistakes={mistakes}
+        pronunciation={pronunciation}
+        transcription={transcription}
+        vocab={vocab}
+      />
+
+      <div className="surface rounded-3xl p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
+          <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-mint-200/80">
             <Icon name="checkCircle" size={12} />
-            Qanday aytish kerak edi
+            Tabiiy varianti
           </div>
           <div className="flex items-center gap-2">
             <SaveButton
@@ -95,23 +74,26 @@ export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, 
             <button
               onClick={onPlayAnswer}
               disabled={speaking}
-              className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] font-medium text-zinc-400 transition hover:text-zinc-100 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.045] px-2.5 py-1.5 text-[10px] font-medium text-zinc-300 transition hover:bg-white/[0.08] disabled:opacity-50"
             >
               <Icon name="volume" size={11} />
               {speaking ? "O'qilyapti" : "Tinglash"}
             </button>
           </div>
         </div>
-        <p className="mt-3 text-[15px] font-medium leading-relaxed text-zinc-100">{model_answer_tr}</p>
+        <p className="mt-3 text-[16px] font-medium leading-relaxed text-zinc-100">
+          <ClickableText text={model_answer_tr} vocab={vocab} playTTS={playTTS} />
+        </p>
         {positive_note_uz && (
-          <p className="mt-3 border-t border-white/[0.06] pt-3 text-[11px] leading-relaxed text-zinc-500">
+          <p className="mt-3 flex items-start gap-2 border-t border-white/[0.06] pt-3 text-[11px] leading-relaxed text-zinc-500">
+            <Icon name="sparkles" size={12} className="mt-0.5 shrink-0 text-amber-200/70" />
             {positive_note_uz}
           </p>
         )}
       </div>
 
-      {useful_phrases?.length > 0 && (
-        <div className="surface rounded-2xl p-5">
+      {useful_phrases.length > 0 && (
+        <div className="surface rounded-3xl p-5">
           <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-zinc-500">
             <Icon name="sparkles" size={12} />
             Foydali iboralar
@@ -120,10 +102,12 @@ export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, 
             {useful_phrases.map((phrase, index) => (
               <li
                 key={index}
-                className="flex flex-wrap items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2"
+                className="flex flex-wrap items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.025] px-3 py-2"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12px] font-medium text-zinc-200">{phrase.tr}</p>
+                  <p className="text-[12px] font-medium text-zinc-200">
+                    <ClickableText text={phrase.tr} context={phrase.uz} vocab={vocab} playTTS={playTTS} />
+                  </p>
                   <p className="mt-0.5 text-[10px] text-zinc-500">{phrase.uz}</p>
                 </div>
                 <button
@@ -143,7 +127,7 @@ export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, 
       <button
         onClick={onNext}
         disabled={busy}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 px-5 py-3.5 text-[13px] font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-40"
+        className="btn-primary flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-[13px] font-semibold disabled:opacity-40"
       >
         Keyingi savol
         <Icon name="arrowRight" size={14} />
