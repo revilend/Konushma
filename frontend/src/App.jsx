@@ -24,7 +24,6 @@ import { useLevel } from "./lib/useLevel";
 import { trackMission } from "./lib/missions";
 import { api } from "./lib/api";
 import { getPersona } from "./lib/personas";
-import { speakWithBrowser } from "./lib/voices";
 import { toast } from "./lib/toast";
 
 const SPEEDS = [0.8, 1.0, 1.2];
@@ -113,13 +112,12 @@ export default function App() {
     const profile = typeof persona === "string" ? getPersona(persona) : persona || getPersona("aylin");
     audioRef.current?.pause();
     audioRef.current = null;
-    window.speechSynthesis?.cancel();
     const audio = new Audio(api.ttsUrl(text, profile, speedRef.current));
+    audio.preload = "auto";
     audioRef.current = audio;
     setSpeaking(true);
     return new Promise((resolve) => {
       let settled = false;
-      let fallbackStarted = false;
       const finish = () => {
         if (settled) return;
         settled = true;
@@ -127,27 +125,19 @@ export default function App() {
         setSpeaking(false);
         resolve();
       };
-      const fallback = async () => {
-        if (fallbackStarted) return;
-        fallbackStarted = true;
-        audioRef.current = null;
-        try {
-          await speakWithBrowser(text, profile, speedRef.current);
-        } catch {
-          toast("Ovoz chiqmadi. Brauzer va tarmoq sozlamalarini tekshiring.", "error");
-        }
+      const fail = () => {
         finish();
+        toast("Neural ovoz yuklanmadi. Internet aloqasini tekshirib qayta urinib ko'ring.", "error");
       };
       audio.onended = finish;
-      audio.onerror = fallback;
-      audio.play().catch(fallback);
+      audio.onerror = fail;
+      audio.play().catch(fail);
     });
   }, []);
 
   const stopTTS = useCallback(() => {
     audioRef.current?.pause();
     audioRef.current = null;
-    window.speechSynthesis?.cancel();
     setSpeaking(false);
   }, []);
 
@@ -378,7 +368,7 @@ export default function App() {
 
               <aside className="space-y-3">
                 <MissionsCard />
-                <VocabularyNotebook vocab={vocab} onOpen={() => setView("vocab")} />
+                <VocabularyNotebook vocab={vocab} onOpen={() => setView("vocab")} playTTS={playTTS} />
                 <section className="smart-card surface rounded-3xl p-4">
                   <div className="flex items-center gap-2">
                     <span className="grid h-7 w-7 place-items-center rounded-lg bg-sky-300/10 text-sky-200">

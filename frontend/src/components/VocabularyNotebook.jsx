@@ -9,7 +9,7 @@ const TYPE_LABEL = {
   false_friend: "Soxta do'st",
 };
 
-export default function VocabularyNotebook({ vocab, onOpen }) {
+export default function VocabularyNotebook({ vocab, onOpen, playTTS }) {
   const items = vocab.items.slice(0, 4);
 
   return (
@@ -44,9 +44,20 @@ export default function VocabularyNotebook({ vocab, onOpen }) {
                 <p className="truncate text-[11px] font-medium text-zinc-200">{item.tr}</p>
                 <p className="truncate text-[9px] text-zinc-500">{item.uz || TYPE_LABEL[item.type] || "Ma'no saqlanmagan"}</p>
               </div>
-              <span className="shrink-0 text-[8px] uppercase tracking-[0.1em] text-zinc-600">
-                {TYPE_LABEL[item.type] || "So'z"}
-              </span>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <span className="text-[8px] uppercase tracking-[0.1em] text-zinc-600">
+                  {TYPE_LABEL[item.type] || "So'z"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => playTTS?.(item.tr)}
+                  className="rounded-md p-1 text-zinc-600 transition hover:bg-white/[0.06] hover:text-zinc-200"
+                  title="Tinglash"
+                  aria-label="Tinglash"
+                >
+                  <Icon name="volume" size={11} />
+                </button>
+              </div>
             </li>
           ))}
         </ul>

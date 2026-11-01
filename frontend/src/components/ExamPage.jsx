@@ -307,7 +307,16 @@ export default function ExamPage({
                     <span className="text-[11px] text-zinc-600 line-through">{mistake.wrong}</span>
                     <Icon name="arrowRight" size={10} className="text-zinc-600" />
                     <span className="text-[11px] font-medium text-mint-100">{mistake.correct}</span>
-                    <span className="ml-auto">
+                    <span className="ml-auto flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => playTTS?.(mistake.correct)}
+                        className="rounded-md p-1.5 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
+                        title="To'g'ri gapni tinglash"
+                        aria-label="To'g'ri gapni tinglash"
+                      >
+                        <Icon name="volume" size={12} />
+                      </button>
                       <SaveButton
                         item={{
                           tr: mistake.correct,

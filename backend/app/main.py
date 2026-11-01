@@ -23,7 +23,7 @@ from .services.personas import get_persona, list_personas
 from .services.questions import random_question
 from .services.report import build_report
 from .services.scenarios import list_scenarios
-from .services.tts_service import synth
+from .services.tts_service import synth_cached
 from .services.wordbook import translate_word
 
 logging.basicConfig(level=logging.INFO)
@@ -182,7 +182,7 @@ async def tts_route(
     """
     profile = get_persona(persona)
     try:
-        audio = await synth(
+        audio, cached = await synth_cached(
             text,
             speed,
             voice or profile["voice"],
@@ -192,7 +192,14 @@ async def tts_route(
     except Exception as exc:
         logging.exception("TTS xatosi")
         raise HTTPException(status_code=502, detail=f"Ovoz yaratish xato qildi: {exc}")
-    return Response(content=audio, media_type="audio/mpeg")
+    return Response(
+        content=audio,
+        media_type="audio/mpeg",
+        headers={
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "X-TTS-Cache": "HIT" if cached else "MISS",
+        },
+    )
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ Foydalanuvchi **mikrofonda turkcha gapiradi** → Aylin Hoca (AI) eshitadi → n
 ```
 
 - STT: brauzerning **Web Speech SpeechRecognition** API (lang `tr-TR`, bu Chrome va Edge'da ishlaydi). Ishlamasa — qo'lda matn kiriting.
-- TTS: Python `edge-tts` → **Aylin uchun Emel**, **Mehmet va Emre uchun Ahmet** Neural ovozi. Har bir personaj o‘z `voice`, `rate` va `pitch` profili bilan gapiradi. Tezlik **0.8x / 1.0x / 1.2x** (UI’dan sozlanadi). Hech qanday API kalit yoki to'lov kerak emas.
+- TTS: Python `edge-tts` → **Aylin uchun Emel**, **Mehmet va Emre uchun Ahmet** Neural ovozi. Har bir personaj o‘z `voice`, `rate` va `pitch` profili bilan gapiradi. Brauzer robot ovozi ishlatilmaydi. Tezlik **0.8x / 1.0x / 1.2x** (UI’dan sozlanadi). Bir marta yaratilgan MP3 `backend/audio/` da keshlanadi; takroriy tinglash darhol ochiladi. Hech qanday API kalit yoki to'lov kerak emas.
 - AI tahlil: Google **Gemini** (`gemini-2.5-flash`) qat'iy JSON-sxemasi bilan instruksiyasi — [backend/app/services/instruction.py](backend/app/services/instruction.py). Zaxira variant: OpenAI-mos kalit (`OPENAI_API_KEY`).
 - Kalitlama frontend yoki brauzerga YUKLANMAYDI — ular faqat backenddagi `.env` faylida.
 
@@ -71,7 +71,7 @@ async def main():
 asyncio.run(main())"
 ```
 
-Izoh: edge-tts Microsoft bulutiga tayanadi — tarmoq uni bloklayotgan bo'lsa TTS xato qaytaradi (tahlil baribir ishlaydi).
+Izoh: edge-tts Microsoft bulutiga tayanadi. `/api/tts` birinchi so'rovda MP3 yaratib `backend/audio/` ga saqlaydi, keyingi so'rovlarda keshdan qaytaradi (`X-TTS-Cache: HIT`). Tarmoq bloklansa brauzer robot ovozi ishga tushmaydi — foydalanuvchiga xato xabari ko'rsatiladi.
 
 ## 📞 Jonli Qo'ng'iroq (Hands-free Call)
 
@@ -79,12 +79,12 @@ Asosiy sahifadagi chap yuqoridagi "Jonli Qo'ng'iroq" tugmasi orqali ochiladi:
 
 - "Qo'ng'iroqni boshlash" bosilgach mikrofon uzluksiz tinglaydi (Web Speech API, tr-TR).
 - **Sukunat deteksiyasi**: gapirib bo'lib 1.5 soniya jim tursa, javob avtomatik `/api/analyze`ga yuboriladi (`mode: "call"`).
-- Tanlangan personajning javobi uning Neural ovozi bilan o'qiladi: Aylin — Emel, Mehmet — Ahmet (+10%, -20Hz), Emre — Ahmet (-5%, +0Hz). Server ovozi ishlamasa, brauzer fallback mos ayol/erkak ovozini tanlaydi.
+- Tanlangan personajning javobi uning Neural ovozi bilan o'qiladi: Aylin — Emel, Mehmet — Ahmet (+10%, -20Hz), Emre — Ahmet (-5%, +0Hz). Ovoz har doim backenddagi Edge TTS orqali keladi; brauzer robot ovozi ishlatilmaydi.
 - Aylin gapirayotganda mikrofon to'liq o'chiriladi; gapirib bitgach avtomatik qayta ochiladi.
 - Har javobda xato kartochkalari: ❌ xato, 💡 o'zbekcha qoida, ✅ to'g'risi.
 - "Qo'ng'iroqni tugatish" barcha resurslarni tozlaydi.
 
-Texnik: sukunat analizi `AnalyserNode` RMS (chegara 8/255) bilan; TTS ijro paytida mic bloklanadi (echo oldini olish uchun). TTS personaj profili `voice`, `rate` va `pitch` parametrlari bilan yuboriladi; tezlik `speed=0.8|1.0|1.2` personaj rate qiymatiga qo'shiladi. Server ovozi yuklanmasa, brauzer `speechSynthesis` fallback ishlaydi va jinsga mos turkcha ovoz tanlaydi.
+Texnik: sukunat analizi `AnalyserNode` RMS (chegara 8/255) bilan; TTS ijro paytida mic bloklanadi (echo oldini olish uchun). TTS personaj profili `voice`, `rate` va `pitch` parametrlari bilan yuboriladi; tezlik `speed=0.8|1.0|1.2` personaj rate qiymatiga qo'shiladi. Barcha ovozlar `/api/tts` dan MP3 sifatida olinadi va serverda keshlanadi.
 
 ## 📡 API endpoints
 
@@ -94,7 +94,7 @@ Texnik: sukunat analizi `AnalyserNode` RMS (chegara 8/255) bilan; TTS ijro payti
 | GET  | `/api/config` | AI provider holati |
 | GET  | `/api/question?exclude=<id>` | Yangi savol |
 | POST | `/api/analyze` | `{transcription, question_tr, question_uz, mode}` → tahlil JSON |
-| GET  | `/api/tts?text=...&voice=...` | Turkcha matn → `audio/mpeg` |
+| GET  | `/api/tts?text=...&persona=...&voice=...&rate=...&pitch=...` | Turkcha matn → keshlangan `audio/mpeg` |
 
 Swagger: <http://localhost:8000/docs>
 
@@ -123,7 +123,7 @@ Swagger: <http://localhost:8000/docs>
 
 - **Mikrofon ishlamaydimi?** SpeechRecognition faqat HTTPS (yoki localhost) da ishlaydi — saytni https bilan oching.
 - **Turkcha tanilmasa?** "📝 Yozib yuborish" maydoniga matn yozing — tahlil shunday ham ishlaydi.
-- **TTS ovoz chiqmasa?** edge-tts Microsoft bulutiga tayanadi — tarmoq cheklovi bo'lsa qayta urinib tengda, TTS xato qaytarsa tahlil bo'lis yoki.
+- **TTS ovoz chiqmasa?** edge-tts Microsoft bulutiga tayanadi. Internetni tekshirib qayta urinib ko'ring; `backend/audio/` yozish huquqini tekshiring. Brauzer robot ovozi ataylab ishlatilmaydi.
 - **Deploy paytida?** `.env` faylni repoga tashlamang: `.gitignore` uni himoylaydi.
 
 ## 📁 Struktura
@@ -139,7 +139,7 @@ Swagger: <http://localhost:8000/docs>
 │           ├── instruction.py     # Aylin Hoca — imtihonchi instruksiyasi
 │           ├── questions.py       # Suhbat savollari bazasi
 │           ├── analysis.py        # Gemini + OpenAI zaxira yo'nalish
-│           └── tts_service.py     # edge-tts (personaj Neural ovozi)
+│           └── tts_service.py     # edge-tts + backend/audio MP3 kesh
 └── frontend/
     ├── index.html · vite.config.js
     └── src/
@@ -220,7 +220,7 @@ Services konfiguratsiyasi:
 
 Eslatmalar:
 
-- TTS (`edge-tts` → personajga mos Emel/Ahmet Neural) Vercel'da ham bepul ishlaydi; API kalit talab qilmaydi.
+- TTS (`edge-tts` → personajga mos Emel/Ahmet Neural) Vercel'da ham bepul ishlaydi; API kalit talab qilmaydi. Vercel fayl tizimi vaqtinchalik bo'lsa disk keshi saqlanmasligi mumkin, lekin brauzer keshi va `Cache-Control` ishlaydi.
 - Birinchi so'rov "cold start" tufayli 1–3 soniya sekinroq bo'lishi mumkin.
 - Hobby tarifi shaxsiy/demo loyihalar uchun; homiy reklama bilan tijoriy foydalanish uchun Pro kerak.
 - Agar Microsoft tomonidan `edge-tts` WebSocket'i bloklansa, backendni Render'ga ko'chirish mumkin —
