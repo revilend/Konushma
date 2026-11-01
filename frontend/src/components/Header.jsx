@@ -2,7 +2,8 @@ import Icon, { LogoMark } from "./Icons";
 
 const TABS = [
   { id: "sim", icon: "sparkles", label: "Studio" },
-  { id: "call", icon: "phone", label: "Qo'ng'iroq" },
+  { id: "call", icon: "phone", label: "Rol o'yini" },
+  { id: "exam", icon: "graduation", label: "TÖMER" },
   { id: "vocab", icon: "book", label: "Lug'at" },
 ];
 

@@ -10,7 +10,7 @@ OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "").strip()
 OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://freebuff.com/api/v1/paid").rstrip("/")
 OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
-GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash").strip()
+GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 
 # edge-tts ovozi — Microsoft Emel Neural (tr-TR), 100% bepul, API kalit kerak emas.
 # Bu qiymatlar .env orqali o'zgartirilmaydi: ovoz doim Emel, tezlik/balandlik 1.0.

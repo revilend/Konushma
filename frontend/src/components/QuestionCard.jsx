@@ -1,7 +1,7 @@
 import Icon, { LogoMark } from "./Icons";
 import ClickableText from "./ClickableText";
 
-export default function QuestionCard({ question, speaking, onPlay, vocab, playTTS }) {
+export default function QuestionCard({ question, level, speaking, onPlay, vocab, playTTS }) {
   if (!question) {
     return (
       <div className="surface animate-pulse rounded-3xl p-6 sm:p-7">
@@ -21,7 +21,7 @@ export default function QuestionCard({ question, speaking, onPlay, vocab, playTT
         </span>
         <div className="min-w-0">
           <p className="text-[12px] font-semibold tracking-tight text-zinc-100">Aylin Hoca</p>
-          <p className="text-[10px] text-zinc-500">Konuşma sınavı · savol</p>
+          <p className="text-[10px] text-zinc-500">Konuşma · {level || question.level || "A2"} darajasi</p>
         </div>
         <span className="ml-auto hidden rounded-full border border-white/[0.07] bg-white/[0.03] px-2 py-1 text-[9px] font-medium text-zinc-500 sm:inline-flex">
           Turkchani bosib tarjima

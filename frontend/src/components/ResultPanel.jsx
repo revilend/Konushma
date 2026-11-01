@@ -14,6 +14,7 @@ export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, 
     useful_phrases = [],
     transcription = "",
     pronunciation_score,
+    key_words = [],
   } = analysis;
   const pronunciation = pronunciation_score ?? 0;
 
@@ -56,14 +57,16 @@ export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, 
         mistakes={mistakes}
         pronunciation={pronunciation}
         transcription={transcription}
+        keyWords={key_words}
         vocab={vocab}
+        playTTS={playTTS}
       />
 
       <div className="surface rounded-3xl p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-mint-200/80">
             <Icon name="checkCircle" size={12} />
-            Tabiiy varianti
+            Tabiiy jaranglashi
           </div>
           <div className="flex items-center gap-2">
             <SaveButton
@@ -81,7 +84,8 @@ export default function ResultPanel({ analysis, speaking, onPlayAnswer, onNext, 
             </button>
           </div>
         </div>
-        <p className="mt-3 text-[16px] font-medium leading-relaxed text-zinc-100">
+        <p className="mt-1 text-[10px] text-zinc-600">Turklar buni shunday aytadi</p>
+        <p className="mt-2 text-[16px] font-medium leading-relaxed text-zinc-100">
           <ClickableText text={model_answer_tr} vocab={vocab} playTTS={playTTS} />
         </p>
         {positive_note_uz && (

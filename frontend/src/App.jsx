@@ -12,6 +12,9 @@ import ToastHost from "./components/ToastHost";
 import LevelCard from "./components/LevelCard";
 import MissionsCard from "./components/MissionsCard";
 import LevelTest from "./components/LevelTest";
+import ModePicker from "./components/ModePicker";
+import VocabularyNotebook from "./components/VocabularyNotebook";
+import ExamPage from "./components/ExamPage";
 import Icon from "./components/Icons";
 import { useRecorder } from "./lib/useRecorder";
 import { useVocabulary } from "./lib/useVocabulary";
@@ -25,9 +28,8 @@ import { toast } from "./lib/toast";
 const SPEEDS = [0.8, 1.0, 1.2];
 
 export default function App() {
-  const [view, setView] = useState("sim"); // sim | call | vocab
+  const [view, setView] = useState("sim"); // sim | call | vocab | exam
   const [callStage, setCallStage] = useState("setup");
-  const [mode, setMode] = useState("practice");
   const [cfg, setCfg] = useState(null);
   const [question, setQuestion] = useState(null);
   const [analysis, setAnalysis] = useState(null);
@@ -61,6 +63,11 @@ export default function App() {
     localStorage.setItem("tp-speed", String(speed));
   }, [speed]);
 
+  useEffect(() => {
+    if (!levelState.level) return;
+    setSpeed(levelState.level === "A1" ? 0.8 : 1.0);
+  }, [levelState.level]);
+
   const refreshConfig = useCallback(async () => {
     try {
       setCfg(await api.config());
@@ -88,11 +95,11 @@ export default function App() {
 
   const loadQuestion = useCallback(async (excludeId) => {
     try {
-      setQuestion(await api.question(excludeId));
+      setQuestion(await api.question(excludeId, levelState.level || ""));
     } catch (e) {
       toast(`Savol yuklanmadi: ${e.message}`, "error");
     }
-  }, []);
+  }, [levelState.level]);
 
   useEffect(() => {
     if (!cfg) return;
@@ -154,17 +161,22 @@ export default function App() {
       setShowManual(false);
       setPhase("analyzing");
       try {
-        const result = await api.analyze(text, question, mode, "", "aylin", levelState.level || "");
+        const result = await api.analyze(text, question, "practice", "", "aylin", levelState.level || "");
         setAnalysis(result);
         setPhase("result");
         trackMission("grammar");
+        let added = 0;
+        (result.key_words || []).forEach((word) => {
+          if (vocab.add({ tr: word.tr, uz: word.uz, type: "word", source: "Serbest sohbet" })) added += 1;
+        });
+        if (added > 0) trackMission("words");
         if (result.model_answer_tr) playTTS(result.model_answer_tr);
       } catch (e) {
         setPhase("ready");
         toast(`Tahlil qilinmadi: ${e.message}`, "error");
       }
     },
-    [rec, manualText, question, mode, playTTS, addSeconds, levelState.level]
+    [rec, manualText, question, playTTS, addSeconds, levelState.level, vocab]
   );
 
   const next = useCallback(async () => {
@@ -187,7 +199,20 @@ export default function App() {
   const handleLevelComplete = useCallback(
     (nextLevel, score) => {
       levelState.save(nextLevel, score);
+      setAnalysis(null);
+      setPhase("ready");
       toast(`Darajangiz aniqlandi: ${nextLevel}. Mashqlar shunga moslashadi.`, "success");
+    },
+    [levelState]
+  );
+
+  const handleLevelSelect = useCallback(
+    (nextLevel) => {
+      if (!nextLevel) return;
+      levelState.save(nextLevel, levelState.score);
+      setAnalysis(null);
+      setPhase("ready");
+      toast(`Daraja ${nextLevel} tanlandi. Savollar va suhbat shunga moslashadi.`, "success");
     },
     [levelState]
   );
@@ -214,7 +239,9 @@ export default function App() {
             ? "p-0"
             : view === "call"
               ? "max-w-3xl px-3 pb-20 pt-5 sm:px-5 sm:pt-6"
-              : "max-w-6xl px-3 pb-16 pt-6 sm:px-5 sm:pt-8"
+              : view === "exam"
+                ? "max-w-4xl px-3 pb-16 pt-5 sm:px-5 sm:pt-7"
+                : "max-w-6xl px-3 pb-16 pt-6 sm:px-5 sm:pt-8"
         }`}
       >
         {view === "sim" && (
@@ -225,7 +252,7 @@ export default function App() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="hero-pill"><span className="h-1.5 w-1.5 rounded-full bg-mint-300" /> Speaking studio</span>
                     <span className="hero-pill">3 personaj</span>
-                    <span className="hero-pill">Smart lug&apos;at</span>
+                    <span className="hero-pill">A1–C1</span>
                   </div>
                   <h1 className="mt-3 text-[28px] font-semibold leading-[1.08] tracking-[-0.045em] text-zinc-50 sm:text-[36px]">
                     Har kuni bir oz
@@ -237,20 +264,27 @@ export default function App() {
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 self-start sm:self-auto">
-                  <div className="segmented" role="group" aria-label="Mashq rejimi">
-                    <button aria-pressed={mode === "practice"} onClick={() => setMode("practice")}>
-                      Mashq
-                    </button>
-                    <button aria-pressed={mode === "exam"} onClick={() => setMode("exam")}>
-                      Imtihon
-                    </button>
-                  </div>
+                  <span className="hero-pill"><span className="h-1.5 w-1.5 rounded-full bg-amber-300" /> 3 rejim</span>
+                  <span className="hero-pill">Daraja bo&apos;yicha</span>
                 </div>
               </div>
             </section>
 
+            <ModePicker
+              active="free"
+              onFree={() => setView("sim")}
+              onRoleplay={() => setView("call")}
+              onExam={() => setView("exam")}
+            />
+
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
               <div className="min-w-0 space-y-3">
+                <LevelCard
+                  level={levelState.level}
+                  score={levelState.score}
+                  onSelect={handleLevelSelect}
+                  onOpen={() => setLevelTestOpen(true)}
+                />
                 <StreakCard streak={streak} />
 
                 {cfg?.setup_needed && !apiKey.hasKey && (
@@ -285,6 +319,7 @@ export default function App() {
                     <>
                       <QuestionCard
                         question={question}
+                        level={levelState.level}
                         speaking={speaking}
                         onPlay={() => playTTS(question?.tr)}
                         vocab={vocab}
@@ -326,12 +361,8 @@ export default function App() {
               </div>
 
               <aside className="space-y-3">
-                <LevelCard
-                  level={levelState.level}
-                  score={levelState.score}
-                  onOpen={() => setLevelTestOpen(true)}
-                />
                 <MissionsCard />
+                <VocabularyNotebook vocab={vocab} onOpen={() => setView("vocab")} />
                 <section className="smart-card surface rounded-3xl p-4">
                   <div className="flex items-center gap-2">
                     <span className="grid h-7 w-7 place-items-center rounded-lg bg-sky-300/10 text-sky-200">
@@ -352,6 +383,17 @@ export default function App() {
         )}
 
         {view === "vocab" && <VocabularyPage vocab={vocab} playTTS={playTTS} onBack={() => setView("sim")} />}
+
+        {view === "exam" && (
+          <ExamPage
+            level={levelState.level || "A2"}
+            vocab={vocab}
+            playTTS={playTTS}
+            stopTTS={stopTTS}
+            onExit={() => setView("sim")}
+            onVocab={() => setView("vocab")}
+          />
+        )}
 
         {view === "call" && (
           <CallScreen

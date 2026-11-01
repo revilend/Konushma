@@ -100,8 +100,10 @@ async def personas():
 
 
 @app.get("/api/scenarios")
-async def scenarios():
-    return {"scenarios": list_scenarios()}
+async def scenarios(
+    kind: str | None = Query(default=None, pattern="^(free|roleplay|exam)$"),
+):
+    return {"scenarios": list_scenarios(kind)}
 
 
 @app.post("/api/translate-word")
@@ -113,8 +115,11 @@ async def translate_word_route(
 
 
 @app.get("/api/question")
-async def question(exclude: int | None = Query(default=None, ge=0)):
-    return random_question(exclude)
+async def question(
+    exclude: int | None = Query(default=None, ge=0),
+    level: str | None = Query(default=None, pattern="^(A1|A2|B1|B2|C1)$"),
+):
+    return random_question(exclude, level)
 
 
 @app.post("/api/analyze")

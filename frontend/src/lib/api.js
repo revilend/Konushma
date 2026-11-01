@@ -33,10 +33,16 @@ export const api = {
 
   personas: () => fetch(`${BASE}/api/personas`).then(handle),
 
-  scenarios: () => fetch(`${BASE}/api/scenarios`).then(handle),
+  scenarios: (kind = "") =>
+    fetch(`${BASE}/api/scenarios${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`).then(handle),
 
-  question: (excludeId) =>
-    fetch(`${BASE}/api/question${excludeId ? `?exclude=${excludeId}` : ""}`).then(handle),
+  question: (excludeId, level = "") => {
+    const params = new URLSearchParams();
+    if (excludeId) params.set("exclude", String(excludeId));
+    if (level) params.set("level", level);
+    const query = params.toString();
+    return fetch(`${BASE}/api/question${query ? `?${query}` : ""}`).then(handle);
+  },
 
   analyze: (transcription, question, mode, scenario = "", persona = "aylin", level = "") =>
     fetch(`${BASE}/api/analyze`, {

@@ -144,6 +144,12 @@ const PATHS = {
       <path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M7 3v3M11 3v3" />
     </>
   ),
+  hotel: (
+    <>
+      <path d="M4 21V4h10v17M14 12h6v9M2 21h20" />
+      <path d="M7 8h4M7 12h4M7 16h4M17 15h1M17 18h1" />
+    </>
+  ),
   bag: (
     <>
       <path d="M5 8h14l-1 13H6L5 8Z" />

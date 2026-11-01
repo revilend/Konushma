@@ -30,6 +30,7 @@ RESULT_KEYS = [
     "next_question_uz",
     "answer_hints",
     "pronunciation_score",
+    "key_words",
 ]
 
 # Gemini uchun qat'iy JSON sxemasi
@@ -37,7 +38,7 @@ GEMINI_RESPONSE_SCHEMA = {
     "type": "OBJECT",
     "properties": {
         "transcription": {"type": "STRING"},
-        "level_score": {"type": "STRING", "description": "A1..B2 daraja"},
+        "level_score": {"type": "STRING", "description": "A1..C1 daraja"},
         "pronunciation_score": {
             "type": "INTEGER",
             "description": "55-98 oralig'ida taxminiy talaffuz bahosi (transkript asosida)",
@@ -75,8 +76,40 @@ GEMINI_RESPONSE_SCHEMA = {
                 "required": ["tr", "uz"],
             },
         },
+        "key_words": {
+            "type": "ARRAY",
+            "items": {
+                "type": "OBJECT",
+                "properties": {"tr": {"type": "STRING"}, "uz": {"type": "STRING"}},
+                "required": ["tr", "uz"],
+            },
+        },
     },
     "required": RESULT_KEYS,
+}
+
+
+LEVEL_GUIDE = {
+    "A1": (
+        "Juda sodda va sekin tilda gapir. 3-6 so'zli qisqa gaplar, hozirgi zamon, "
+        "eng ko'p ishlatiladigan so'zlar. Bir vaqtda faqat bitta savol ber."
+    ),
+    "A2": (
+        "Qisqa va aniq gaplar bilan gapir. Kundalik lug'at va oddiy o'tgan zamonni "
+        "ishlat. Savollar 1-2 jumladan oshmasin, tushuntirish oson bo'lsin."
+    ),
+    "B1": (
+        "Tabiiy suhbat tempida gapir. Fikrni sabab bilan ifodalashga unda, "
+        "o'tgan zamon va bog'lovchilardan foydalan. Savollar o'rta uzunlikda bo'lsin."
+    ),
+    "B2": (
+        "Jiddiyroq va boyroq tilda gapir. Fikr bildirish, taqqoslash va sabab-oqibat "
+        "munosabatini talab qiladigan savollar ber. Javobda aniq dalil so'ra."
+    ),
+    "C1": (
+        "Murakkab, akademik va idiomatik til ishlat. Mavhum mavzular, tanqidiy tahlil, "
+        "qarama-qarshi fikrlar va nozik ma'no farqlarini muhokama qilishga unda."
+    ),
 }
 
 
@@ -97,14 +130,17 @@ def _user_prompt(
         rejim = "PRATIK (murabbiy) rejimi"
     sc = get_scenario(scenario_id)
     persona = get_persona(persona_id)
-    scenario_line = (
-        f"STENARIY: {sc['title_uz']} ({sc['level']}) — {sc['context']}\n" if sc else ""
-    )
+    scenario_line = f"STENARIY: {sc['title_uz']} — {sc['context']}\n" if sc else ""
     persona_line = (
         f"SUHBATDOSH: {persona['name']} — {persona['role']}. "
         f"Ohang: {persona['tone']}. O'zingni shu personaj sifatida tut; ismingni shu nom bilan ayt.\n"
     )
-    level_line = f"FOYDALANUVCHI DARAJASI: {level}. Tushuntirish va savollarni shu darajaga moslashtir.\n" if level else ""
+    level_key = (level or "A2").upper()
+    level_line = (
+        f"FOYDALANUVCHI DARAJASI: {level_key}. "
+        f"{LEVEL_GUIDE.get(level_key, LEVEL_GUIDE['A2'])} "
+        "Barcha tushuntirishlar o'zbek tilida, tanlangan darajaga mos bo'lsin.\n"
+    )
     return (
         f"REJIM: {rejim}.\n"
         f"{scenario_line}"
@@ -117,7 +153,9 @@ def _user_prompt(
         " next_question_tr — savolga ulangan, stsenariy va personajga mos yangi tabiiy ochiq savol bo'lsin."
         " useful_phrases — shu javobda ishlatilishi mumkin bo'lgan 1-3 ta foydali turkcha ibora (o'zbekcha tarjimasi bilan)."
         " next_question_uz — next_question_tr ning tabiiy o'zbekcha tarjimasi."
+        " model_answer_tr — foydalanuvchi aytmoqchi bo'lgan fikrning tabiiy turkcha varianti; tanlangan darajaga mos bo'lsin."
         " answer_hints — foydalanuvchi javob bera olmay qolsa ishlatadigan 2-3 ta qisqa namunaviy turkcha javob (tr + uz)."
+        " key_words — foydalanuvchi gapida ishlatgan yoki unga foydali bo'ladigan 1-3 ta yangi turkcha so'z (tr + o'zbekcha uz)."
         " pronunciation_score — transkript ravonligi, so'z aniqligi va xatolar soniga qarab 55-98 oralig'ida taxminiy talaffuz foizi."
     )
 
@@ -128,6 +166,8 @@ def _estimate_pronunciation(transcription: str, mistakes: list, level: str = "")
     if len(words) < 4:
         score -= 8
     if (level or "").upper().startswith("B"):
+        score += 1
+    if (level or "").upper() == "C1":
         score += 1
     return max(55, min(98, int(round(score))))
 
@@ -241,6 +281,11 @@ def _normalize(result: dict, transcription: str) -> dict:
         for p in (out.get("useful_phrases") or [])
         if p.get("tr")
     ][:4]
+    out["key_words"] = [
+        {"tr": str(w.get("tr", ""))[:120], "uz": str(w.get("uz", ""))[:240]}
+        for w in (out.get("key_words") or [])
+        if w.get("tr")
+    ][:3]
     return out
 
 

@@ -4,7 +4,7 @@ Turkchadagi **og'zaki nutq (Konuşma / Speaking) simulatori** — o'zbek tilidan
 
 Foydalanuvchi **mikrofonda turkcha gapiradi** → Aylin Hoca (AI) eshitadi → necha soniyada:
 
-- 🎯 **Umumiy baho**: CEFR daraja (A1 … B2, `level_score`)
+- 🎯 **Umumiy baho**: CEFR daraja (A1 … C1, `level_score`)
 - ❌ **Xatolaring tahlili** — grammatika, lug'at, **soxta do'st so'zlar (false friends)** bilan
 - 🇺🇿 **Har bir xato o'zbekcha tushuntiriladi** — nega xato va qaysi turkcha qoida buzilgan
 - ✅ **Model javob** — tabiiy turkcha "qanday aytish kerak edi" + jonli ovoz
@@ -28,7 +28,7 @@ Foydalanuvchi **mikrofonda turkcha gapiradi** → Aylin Hoca (AI) eshitadi → n
 
 - STT: brauzerning **Web Speech SpeechRecognition** API (lang `tr-TR`, bu Chrome va Edge'da ishlaydi). Ishlamasa — qo'lda matn kiriting.
 - TTS: Python `edge-tts` → `tr-TR-EmelNeural` (bepul, natural). Ovoz qat'iy Emel; tezlik **0.8x / 1.0x / 1.2x** (UI’dan sozlanadi), balandlik **1.0** (`+0Hz`). Hech qanday API kalit yoki to'lov kerak emas.
-- AI tahlil: Google **Gemini** (`gemini-1.5-flash`) qat'iy JSON-sxemasi bilan instruksiyasi — [backend/app/services/instruction.py](backend/app/services/instruction.py). Zaxira variant: OpenAI-mos kalit (`OPENAI_API_KEY`).
+- AI tahlil: Google **Gemini** (`gemini-2.5-flash`) qat'iy JSON-sxemasi bilan instruksiyasi — [backend/app/services/instruction.py](backend/app/services/instruction.py). Zaxira variant: OpenAI-mos kalit (`OPENAI_API_KEY`).
 - Kalitlama frontend yoki brauzerga YUKLANMAYDI — ular faqat backenddagi `.env` faylida.
 
 ## ⚙️ O'rnatish (bir qadamda)
@@ -147,6 +147,16 @@ Swagger: <http://localhost:8000/docs>
         ├── main.jsx · index.css
         ├── lib/ api.js, useRecorder.js   # STT + timer + analyser
         └── components/ Header, QuestionCard, RecorderBar, Waveform, ResultPanel
+
+## 🆕 4.0 — CEFR A1–C1, uch rejim va TÖMER
+
+- **Daraja tanlash**: bosh sahifada A1, A2, B1, B2 va C1 tugmalari. Savollar, tushuntirishlar va Aylin Hocaning nutq murakkabligi tanlangan darajaga moslashadi. A1 uchun ovoz 0.8x tezlikda boshlanadi.
+- **Serbest Sohbet**: istalgan mavzuda darajaga mos erkin mashq.
+- **Rol Oyunu**: Kafede sipariş, Kapalıçarşı'da pazarlık, havalimanında check-in va otelde rezervasyon.
+- **TÖMER Konuşma Sınavı**: uch bosqichli imtihon va Akıcılık, Kelime bilgisi, Dilbilgisi bo‘yicha 100 ballik natija kartasi.
+- **Feedback kartasi**: har javobdan keyin tuzatish va “Tabiiy jaranglashi” varianti. `key_words` avtomatik lug‘at daftariga qo‘shiladi.
+- **Lug‘at daftari**: bosh sahifada suhbatdan saqlangan so‘zlar va ma’nolarining qisqa ro‘yxati; to‘liq daftar va flashcardlar alohida sahifada.
+- AI model: `gemini-2.5-flash`.
 
 ## 🆕 3.0 — Jonli vizual, tarjima, tezlik va streak
 

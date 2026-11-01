@@ -3,7 +3,8 @@
 SCENARIOS: list[dict] = [
     {
         "id": "cafe",
-        "title_uz": "Kafeda buyurtma berish",
+        "kind": "roleplay",
+        "title_uz": "Kafede sipariş verme",
         "title_tr": "Kafede sipariş vermek",
         "level": "A1-A2",
         "desc_uz": "Ofitsiant bilan salomlashish, menyu so'rash, ichimlik va taom buyurtma qilish.",
@@ -18,7 +19,8 @@ SCENARIOS: list[dict] = [
     },
     {
         "id": "bazaar",
-        "title_uz": "Kapalıçarşı'da savdolashish",
+        "kind": "roleplay",
+        "title_uz": "Kapalıçarşı'da pazarlık yapma",
         "title_tr": "Kapalıçarşı'da pazarlık",
         "level": "B1",
         "desc_uz": "Katta Bozorda narx so'rash, savdolashish va xarid qilishni mashq qilish.",
@@ -33,7 +35,8 @@ SCENARIOS: list[dict] = [
     },
     {
         "id": "airport",
-        "title_uz": "Istanbul aeroportida pasport nazorati",
+        "kind": "roleplay",
+        "title_uz": "Havalimanında check-in",
         "title_tr": "İstanbul Havalimanı'nda pasaport kontrolü",
         "level": "A2-B1",
         "desc_uz": "Pasport nazorati, safar maqsadi va qolish muddati haqida rasmiy suhbat.",
@@ -47,7 +50,24 @@ SCENARIOS: list[dict] = [
         ],
     },
     {
+        "id": "hotel",
+        "kind": "roleplay",
+        "title_uz": "Otelde rezervasyon",
+        "title_tr": "Otelde rezervasyon yapmak",
+        "level": "A2-B1",
+        "desc_uz": "Mehmonxonaga kelish, rezervatsiyani tekshirish, xona va nonushta haqida so'rash.",
+        "context": "Sen Istanbuldagi mehmonxona resepsiyonistisan. Foydalanuvchi mehmon. Rezervatsiya, xona turi, tunlar soni va nonushta haqida savollar ber; samimiy va aniq bo'l.",
+        "opening_tr": "İyi akşamlar, hoş geldiniz! Rezervasyonunuz var mı?",
+        "opening_uz": "Xayrli kech, xush kelibsiz! Rezervatsiyangiz bormi?",
+        "phrases": [
+            {"tr": "Rezervasyonum var.", "uz": "Rezervatsiyam bor."},
+            {"tr": "İki geceliğine kalacağım.", "uz": "Ikki kecha qolaman."},
+            {"tr": "Kahvaltı dahil mi?", "uz": "Nonushta narxga kirmi?"},
+        ],
+    },
+    {
         "id": "tomer",
+        "kind": "exam",
         "title_uz": "TÖMER / Yunus Emre og'zaki imtihoni",
         "title_tr": "TÖMER / Yunus Emre konuşma sınavı",
         "level": "B2-C1",
@@ -63,6 +83,7 @@ SCENARIOS: list[dict] = [
     },
     {
         "id": "free",
+        "kind": "free",
         "title_uz": "Erkin do'stona suhbat",
         "title_tr": "Serbest sohbet",
         "level": "A2-B2",
@@ -83,6 +104,7 @@ SCENARIO_PERSONAS = {
     "cafe": "aylin",
     "bazaar": "mehmet",
     "airport": "aylin",
+    "hotel": "aylin",
     "tomer": "aylin",
     "free": "aylin",
 }
@@ -104,6 +126,11 @@ HINTS: dict[str, list[dict]] = {
         {"tr": "Bir hafta kalacağım.", "uz": "Bir hafta qolaman."},
         {"tr": "Otel rezervasyonum var.", "uz": "Mehmonxona rezervatsiyam bor."},
     ],
+    "hotel": [
+        {"tr": "Rezervasyonum var.", "uz": "Rezervatsiyam bor."},
+        {"tr": "İki geceliğine kalacağım.", "uz": "Ikki kecha qolaman."},
+        {"tr": "Kahvaltı dahil mi?", "uz": "Nonushta narxga kirmi?"},
+    ],
     "tomer": [
         {"tr": "Bence bu konunun iki yönü var.", "uz": "Menimcha, bu masalaning ikki tomoni bor."},
         {"tr": "Örneğin, kendi deneyimimden yola çıkarsam...", "uz": "Masalan, o'z tajribamdan kelib chiqsam..."},
@@ -117,14 +144,15 @@ HINTS: dict[str, list[dict]] = {
 }
 
 
-def list_scenarios() -> list[dict]:
+def list_scenarios(kind: str | None = None) -> list[dict]:
+    selected = [s for s in SCENARIOS if not kind or s.get("kind") == kind]
     return [
         {
             **{k: v for k, v in s.items() if k not in ("context", "phrases")},
             "hints": HINTS.get(s["id"], []),
             "persona": SCENARIO_PERSONAS.get(s["id"], "aylin"),
         }
-        for s in SCENARIOS
+        for s in selected
     ]
 
 

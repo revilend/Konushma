@@ -1,5 +1,6 @@
 import SaveButton from "./SaveButton";
 import PronunciationRing from "./PronunciationRing";
+import ClickableText from "./ClickableText";
 import Icon from "./Icons";
 
 const TYPE_META = {
@@ -12,7 +13,10 @@ export default function GrammarPanel({
   mistakes = [],
   pronunciation = null,
   transcription = "",
+  natural = "",
+  keyWords = [],
   vocab,
+  playTTS,
   compact = false,
   title = "Grammatika tahlilchisi",
 }) {
@@ -104,6 +108,38 @@ export default function GrammarPanel({
               <Icon name="info" size={10} />
               Tuzatishni bosing va lug&apos;atga saqlang.
             </p>
+          )}
+
+          {natural && (
+            <div className="mt-2 rounded-xl border border-mint-300/15 bg-mint-300/[0.055] p-3">
+              <div className="flex flex-wrap items-center justify-between gap-1.5">
+                <span className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-mint-200">
+                  <Icon name="lightbulb" size={11} />
+                  Tabiiy jaranglashi
+                </span>
+                <span className="text-[8px] text-zinc-600">Turklar shunday aytadi</span>
+              </div>
+              <p className="mt-1.5 text-[12px] font-medium leading-relaxed text-zinc-100">
+                <ClickableText text={natural} vocab={vocab} playTTS={playTTS} />
+              </p>
+            </div>
+          )}
+
+          {keyWords.length > 0 && (
+            <div className="mt-2 rounded-xl border border-amber-300/10 bg-amber-300/[0.045] p-2.5">
+              <p className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-amber-200/80">
+                <Icon name="book" size={10} />
+                Lug&apos;at daftariga qo&apos;shildi
+              </p>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {keyWords.map((word, index) => (
+                  <span key={`${word.tr}-${index}`} className="rounded-lg border border-white/[0.07] bg-white/[0.025] px-2 py-1 text-[10px]">
+                    <span className="font-medium text-zinc-200">{word.tr}</span>
+                    <span className="text-zinc-500"> — {word.uz}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>

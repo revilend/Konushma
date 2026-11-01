@@ -76,17 +76,15 @@ export default function CallScreen({
     setLoadingScenarios(true);
     try {
       const [data, personaData] = await Promise.all([
-        api.scenarios(),
+        api.scenarios("roleplay"),
         api.personas().catch(() => ({ personas: PERSONAS })),
       ]);
       const list = data.scenarios || [];
       const personaList = personaData.personas?.length ? personaData.personas : PERSONAS;
       setPersonas(personaList);
       setScenarios(list);
-      setScenarioId((prev) =>
-        list.some((s) => s.id === prev) ? prev : list.find((s) => s.id === "free")?.id || list[0]?.id || ""
-      );
-      const initial = list.find((s) => s.id === "free") || list[0];
+      setScenarioId((prev) => (list.some((s) => s.id === prev) ? prev : list[0]?.id || ""));
+      const initial = list[0];
       if (initial?.persona) setPersonaId(initial.persona);
     } catch (e) {
       toast(`Stsenariylar yuklanmadi: ${e.message}`, "error");
@@ -121,17 +119,23 @@ export default function CallScreen({
         mistakes: data.mistakes || [],
         phrases: data.useful_phrases || [],
         pronunciation_score: data.pronunciation_score,
+        keyWords: data.key_words || [],
       };
       turnsRef.current = [...turnsRef.current, turn];
       setHistory([...turnsRef.current].reverse());
       questionRef.current = turn.aylin || questionRef.current;
       trackMission("grammar");
+      let added = 0;
+      turn.keyWords.forEach((word) => {
+        if (vocab.add({ tr: word.tr, uz: word.uz, type: "word", source: "Rol o'yini" })) added += 1;
+      });
+      if (added > 0) trackMission("words");
       return turn;
     } catch (e) {
       toast(`Javob tahlil qilinmadi: ${e.message}`, "error");
       return null;
     }
-  }, [level, personaId]);
+  }, [level, personaId, vocab]);
 
   const onTurnWithSpeech = useCallback(
     async (text) => {
@@ -355,7 +359,7 @@ export default function CallScreen({
           <span className="text-zinc-700">·</span>
           <span>{selected?.title_uz}</span>
           <span className="text-zinc-700">·</span>
-          <span className="tabular-nums">{selected?.level}</span>
+          <span className="tabular-nums">{level || selected?.level}</span>
         </p>
 
         <Captions
@@ -371,17 +375,29 @@ export default function CallScreen({
           <Waveform getAnalyser={call.getAnalyser} active={call.callState === "listening" || isSpeaking} mode={waveMode} />
         </div>
 
-        {latest && latestPron != null && (
+        {latest && (
           <button
             type="button"
             onClick={() => setShowUz(true)}
-            className="feedback-pill mt-1 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] py-1 pl-1 pr-3 text-left backdrop-blur-xl transition hover:bg-white/[0.08]"
+            className="feedback-inline mt-2 flex w-full max-w-xl items-center gap-2.5 rounded-2xl border border-white/10 p-2.5 text-left backdrop-blur-xl transition hover:border-mint-300/20"
           >
-            <PronunciationRing score={latestPron} size={38} label="Talaffuz" showLabel={false} />
-            <span className="text-[10px] font-medium text-zinc-200">
-              {latest.mistakes?.length ? `${latest.mistakes.length} ta tuzatish` : "Grammatika toza"}
+            {latestPron != null && (
+              <PronunciationRing score={latestPron} size={38} label="Talaffuz" showLabel={false} />
+            )}
+            <span className="min-w-0 flex-1">
+              <span className="block text-[8px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                Grammatika tahlili
+              </span>
+              <span className="mt-0.5 block truncate text-[10px] font-medium text-zinc-200">
+                {latest.mistakes?.[0]
+                  ? `${latest.mistakes[0].wrong} → ${latest.mistakes[0].correct}`
+                  : "Xato topilmadi"}
+              </span>
+              {latest.reply && (
+                <span className="mt-0.5 block truncate text-[9px] text-zinc-500">Tabiiy: {latest.reply}</span>
+              )}
             </span>
-            <Icon name="chart" size={11} className="text-zinc-500" />
+            <Icon name="chevronRight" size={12} className="shrink-0 text-zinc-600" />
           </button>
         )}
 
@@ -417,7 +433,10 @@ export default function CallScreen({
                 mistakes={latest.mistakes || []}
                 pronunciation={latest.pronunciation_score}
                 transcription={latest.user}
+                natural={latest.reply}
+                keyWords={latest.keyWords || []}
                 vocab={vocab}
+                playTTS={playTTS}
                 compact
               />
             </div>

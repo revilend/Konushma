@@ -7,6 +7,7 @@ const SCENARIO_ICONS = {
   cafe: "coffee",
   bazaar: "bag",
   airport: "plane",
+  hotel: "hotel",
   tomer: "graduation",
   free: "message",
 };
@@ -51,7 +52,7 @@ export default function ScenarioPicker({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-              <span className="hero-pill"><span className="h-1.5 w-1.5 rounded-full bg-mint-300" /> Voice session</span>
+              <span className="hero-pill"><span className="h-1.5 w-1.5 rounded-full bg-mint-300" /> Rol o&apos;yini</span>
               <span className="hero-pill">{list.length} personaj</span>
             </div>
             <h2 className="mt-3 text-[27px] font-semibold leading-[1.08] tracking-[-0.04em] text-zinc-50 sm:text-[32px]">
@@ -113,7 +114,7 @@ export default function ScenarioPicker({
             <h3 className="text-[14px] font-semibold tracking-tight text-zinc-100">Mavzuni tanlang</h3>
             <p className="mt-0.5 text-[11px] text-zinc-500">Har bir stsenariyning o&apos;z darajasi va roli bor</p>
           </div>
-          <span className="text-[10px] tabular-nums text-zinc-600">{scenarios.length || 5} ta</span>
+          <span className="text-[10px] tabular-nums text-zinc-600">{scenarios.length || 4} ta</span>
         </div>
 
         {loading ? (

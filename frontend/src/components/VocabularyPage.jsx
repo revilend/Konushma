@@ -160,7 +160,7 @@ export default function VocabularyPage({ vocab, playTTS, onBack }) {
         <div className="relative flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="hero-pill"><span className="h-1.5 w-1.5 rounded-full bg-amber-300" /> Smart lug&apos;at</span>
+              <span className="hero-pill"><span className="h-1.5 w-1.5 rounded-full bg-amber-300" /> Lug&apos;at daftari</span>
               <span className="hero-pill">{items.length} ta yozuv</span>
             </div>
             <h1 className="mt-3 text-[27px] font-semibold tracking-[-0.04em] text-zinc-50">So&apos;z boyligingiz</h1>

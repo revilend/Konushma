@@ -50,8 +50,9 @@ export const LEVEL_TEST = [
 ];
 
 export function scoreToLevel(score) {
-  if (score >= 7) return "B2";
-  if (score >= 5) return "B1";
-  if (score >= 3) return "A2";
+  if (score >= 7) return "C1";
+  if (score >= 6) return "B2";
+  if (score >= 4) return "B1";
+  if (score >= 2) return "A2";
   return "A1";
 }

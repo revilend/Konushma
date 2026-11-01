@@ -1,13 +1,14 @@
 import { useCallback, useState } from "react";
 
 const KEY = "tp-level-v1";
-export const LEVELS = ["A1", "A2", "B1", "B2"];
+export const LEVELS = ["A1", "A2", "B1", "B2", "C1"];
 
 export const LEVEL_META = {
-  A1: { label: "Boshlang'ich", note: "Tanish so'zlar va oddiy savollar" },
+  A1: { label: "Boshlang'ich", note: "Juda oddiy so'zlar, qisqa gaplar va sekin nutq" },
   A2: { label: "Asosiy", note: "Kundalik suhbat va qisqa jumlalar" },
   B1: { label: "O'rta", note: "Fikr bildirish va sabab tushuntirish" },
   B2: { label: "Yuqori o'rta", note: "Erkin suhbat va murakkab mavzular" },
+  C1: { label: "Ilg'or", note: "Akademik til, tanqidiy tahlil va nozik ma'nolar" },
 };
 
 function load() {
@@ -40,5 +41,11 @@ export function useLevel() {
     }
     setState(null);
   }, []);
-  return { level: state?.level || null, score: state?.score ?? null, save, clear, hasLevel: Boolean(state?.level) };
+  return {
+    level: state?.level || null,
+    score: state?.score ?? null,
+    save,
+    clear,
+    hasLevel: Boolean(state?.level),
+  };
 }
