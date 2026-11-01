@@ -1,28 +1,75 @@
-"""Microsoft Emel Neural (tr-TR-EmelNeural) — bepul, tabiiy turkcha ovoz.
+"""Turkcha Neural ovozlar — personajga mos voice, rate va pitch.
 
-Ovoz va balandlik qat'iy (Emel / 1.0 pitch). Tezlik faqat 0.8x, 1.0x, 1.2x
-oralig'ida o'zgartiriladi — yangi boshlovchilar uchun sekinlashtirish mumkin.
+Aylin: Emel (ayol). Mehmet va Emre: Ahmet (erkak). Foydalanuvchi tezligi
+personajning asosiy rate qiymatiga qo'shiladi: 0.8x -> -20%, 1.2x -> +20%.
 """
+import re
+
 import edge_tts
 
-from ..config import TTS_PITCH, TTS_VOICE
+from ..config import TTS_PITCH, TTS_RATE, TTS_VOICE
 
 MAX_CHARS = 600
+ALLOWED_VOICES = {"tr-TR-EmelNeural", "tr-TR-AhmetNeural"}
+RATE_RE = re.compile(r"^([+-]?)(\d{1,3})%$")
+PITCH_RE = re.compile(r"^([+-]?)(\d{1,3})Hz$", re.IGNORECASE)
 
 
-def rate_for_speed(speed: float) -> str:
-    """0.8 -> -20%, 1.0 -> +0%, 1.2 -> +20%."""
-    pct = int(round((float(speed) - 1.0) * 100))
-    pct = max(-50, min(50, pct))
-    return f"{pct:+d}%"
+def _clamp(value: int, low: int, high: int) -> int:
+    return max(low, min(high, value))
 
 
-async def synth(text: str, speed: float = 1.0) -> bytes:
-    """Matnni mp3 ga aylantiradi (bytes qaytadi)."""
+def normalize_rate(value: str | None, fallback: str = TTS_RATE) -> str:
+    match = RATE_RE.fullmatch((value or "").strip())
+    if not match:
+        match = RATE_RE.fullmatch(fallback.strip())
+    if not match:
+        return "+0%"
+    sign = -1 if match.group(1) == "-" else 1
+    percent = _clamp(sign * int(match.group(2)), -60, 60)
+    return f"{percent:+d}%"
+
+
+def normalize_pitch(value: str | None, fallback: str = TTS_PITCH) -> str:
+    match = PITCH_RE.fullmatch((value or "").strip())
+    if not match:
+        match = PITCH_RE.fullmatch(fallback.strip())
+    if not match:
+        return "+0Hz"
+    sign = -1 if match.group(1) == "-" else 1
+    hz = _clamp(sign * int(match.group(2)), -50, 50)
+    return f"{hz:+d}Hz"
+
+
+def resolve_voice(value: str | None) -> str:
+    return value if value in ALLOWED_VOICES else TTS_VOICE
+
+
+def rate_for_speed(speed: float = 1.0, base_rate: str | None = None) -> str:
+    """Personaj rate qiymatiga foydalanuvchi tezligini qo'shadi."""
+    base_match = RATE_RE.fullmatch(normalize_rate(base_rate))
+    base = int(base_match.group(1) + base_match.group(2)) if base_match else 0
+    speed_pct = int(round((float(speed) - 1.0) * 100))
+    return f"{_clamp(base + speed_pct, -60, 60):+d}%"
+
+
+async def synth(
+    text: str,
+    speed: float = 1.0,
+    voice: str | None = None,
+    rate: str | None = None,
+    pitch: str | None = None,
+) -> bytes:
+    """Matnni tanlangan personaj ovozida mp3 ga aylantiradi."""
     clean = " ".join(text.strip().split())[:MAX_CHARS]
     if not clean:
         return b""
-    communicate = edge_tts.Communicate(clean, TTS_VOICE, rate=rate_for_speed(speed), pitch=TTS_PITCH)
+    communicate = edge_tts.Communicate(
+        clean,
+        resolve_voice(voice),
+        rate=rate_for_speed(speed, rate),
+        pitch=normalize_pitch(pitch),
+    )
     chunks: list[bytes] = []
     async for chunk in communicate.stream():
         if chunk["type"] == "audio":

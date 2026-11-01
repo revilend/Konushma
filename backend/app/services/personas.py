@@ -9,6 +9,11 @@ PERSONAS: list[dict] = [
         "tone": "iliq, sabrli va rag'batlantiruvchi",
         "desc_uz": "Xatolaringizni yumshoq tuzatadi va har javobdan keyin davom etishga undaydi.",
         "accent": "mint",
+        "voice": "tr-TR-EmelNeural",
+        "voice_label": "Emel Neural",
+        "gender": "female",
+        "rate": "+0%",
+        "pitch": "+0Hz",
     },
     {
         "id": "mehmet",
@@ -18,6 +23,11 @@ PERSONAS: list[dict] = [
         "tone": "chaqqon, hazilkash va savdolashishni yaxshi ko'radigan",
         "desc_uz": "Kapalıçarşı'da narx, sifat va savdolashish haqida tabiiy suhbat quradi.",
         "accent": "amber",
+        "voice": "tr-TR-AhmetNeural",
+        "voice_label": "Ahmet Neural",
+        "gender": "male",
+        "rate": "+10%",
+        "pitch": "-20Hz",
     },
     {
         "id": "emre",
@@ -27,6 +37,11 @@ PERSONAS: list[dict] = [
         "tone": "xotirjam, aniq va g'amxo'r",
         "desc_uz": "Salomatlik, kun tartibi va shikoyatlar haqida sodda savollar beradi.",
         "accent": "sky",
+        "voice": "tr-TR-AhmetNeural",
+        "voice_label": "Ahmet Neural",
+        "gender": "male",
+        "rate": "-5%",
+        "pitch": "+0Hz",
     },
 ]
 

@@ -23,6 +23,8 @@ import { useApiKey } from "./lib/useApiKey";
 import { useLevel } from "./lib/useLevel";
 import { trackMission } from "./lib/missions";
 import { api } from "./lib/api";
+import { getPersona } from "./lib/personas";
+import { speakWithBrowser } from "./lib/voices";
 import { toast } from "./lib/toast";
 
 const SPEEDS = [0.8, 1.0, 1.2];
@@ -106,32 +108,46 @@ export default function App() {
     loadQuestion(null);
   }, [cfg, loadQuestion]);
 
-  const playTTS = useCallback((text) => {
+  const playTTS = useCallback((text, persona = "aylin") => {
     if (!text) return Promise.resolve();
+    const profile = typeof persona === "string" ? getPersona(persona) : persona || getPersona("aylin");
     audioRef.current?.pause();
-    const audio = new Audio(api.ttsUrl(text, speedRef.current));
+    audioRef.current = null;
+    window.speechSynthesis?.cancel();
+    const audio = new Audio(api.ttsUrl(text, profile, speedRef.current));
     audioRef.current = audio;
     setSpeaking(true);
-    const finish = () => setSpeaking(false);
     return new Promise((resolve) => {
-      audio.onended = () => {
-        finish();
+      let settled = false;
+      let fallbackStarted = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        audioRef.current = null;
+        setSpeaking(false);
         resolve();
       };
-      audio.onerror = () => {
+      const fallback = async () => {
+        if (fallbackStarted) return;
+        fallbackStarted = true;
+        audioRef.current = null;
+        try {
+          await speakWithBrowser(text, profile, speedRef.current);
+        } catch {
+          toast("Ovoz chiqmadi. Brauzer va tarmoq sozlamalarini tekshiring.", "error");
+        }
         finish();
-        toast("Ovoz yuklanmadi. TTS xizmati band bo'lishi mumkin.", "error");
-        resolve();
       };
-      audio.play().catch(() => {
-        finish();
-        resolve();
-      });
+      audio.onended = finish;
+      audio.onerror = fallback;
+      audio.play().catch(fallback);
     });
   }, []);
 
   const stopTTS = useCallback(() => {
     audioRef.current?.pause();
+    audioRef.current = null;
+    window.speechSynthesis?.cancel();
     setSpeaking(false);
   }, []);
 
@@ -416,7 +432,7 @@ export default function App() {
         {!immersive && view !== "call" && (
           <p className="pt-6 text-center text-[10px] leading-relaxed text-zinc-600">
             TürkçePrep AI · STT Web Speech API · TTS edge-tts{" "}
-            <span className="text-zinc-500">tr-TR-EmelNeural</span> · AI Gemini
+            <span className="text-zinc-500">personaj Neural ovozi</span> · AI Gemini
           </p>
         )}
       </main>

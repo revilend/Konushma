@@ -54,6 +54,7 @@ export default function ScenarioPicker({
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
               <span className="hero-pill"><span className="h-1.5 w-1.5 rounded-full bg-mint-300" /> Rol o&apos;yini</span>
               <span className="hero-pill">{list.length} personaj</span>
+              <span className="hero-pill">{persona.voice_label || "Neural ovoz"}</span>
             </div>
             <h2 className="mt-3 text-[27px] font-semibold leading-[1.08] tracking-[-0.04em] text-zinc-50 sm:text-[32px]">
               {persona.name} bilan
@@ -96,6 +97,7 @@ export default function ScenarioPicker({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[12px] font-semibold text-zinc-100">{item.name}</p>
                     <p className="truncate text-[9px] text-zinc-500">{item.role}</p>
+                    <p className="truncate text-[8px] text-zinc-600">{item.voice_label || "Neural ovoz"}</p>
                   </div>
                   <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border ${active ? "border-mint-300 bg-mint-300 text-emerald-950" : "border-white/10 text-transparent"}`}>
                     <Icon name="check" size={9} strokeWidth={2.4} />
@@ -212,7 +214,7 @@ export default function ScenarioPicker({
         </button>
       </div>
       <p className="pb-2 text-center text-[10px] leading-relaxed text-zinc-600">
-        Mikrofon ruxsatini bering · Chrome yoki Edge tavsiya etiladi · Aylin faqat Emel Neural ovozida gapiradi
+        Mikrofon ruxsatini bering · Chrome yoki Edge tavsiya etiladi · har bir personaj o&apos;z Neural ovozida gapiradi
       </p>
     </div>
   );

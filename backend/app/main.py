@@ -3,7 +3,7 @@
 BUYRUQLAR:
   POST /api/analyze    -> javob tahlili (transcription + savol konteksti)
   POST /api/report     -> qo'ng'iroq yakuni bo'yicha hisobot (CEFR + 4 mezon)
-  GET  /api/tts        -> matnni mp3 ovozga aylantiradi (tr-TR-EmelNeural)
+  GET  /api/tts        -> matnni personajga mos Neural ovozga aylantiradi
   GET  /api/question   -> tasodifiy suhbat savoli
   GET  /api/scenarios  -> mavzuli muloqot stsenariylari
   GET  /api/personas   -> Aylin, Mehmet va Emre personajlari
@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 
 from .config import TTS_PITCH, TTS_RATE, TTS_VOICE, ai_provider
 from .services.analysis import analyze
-from .services.personas import list_personas
+from .services.personas import get_persona, list_personas
 from .services.questions import random_question
 from .services.report import build_report
 from .services.scenarios import list_scenarios
@@ -170,14 +170,25 @@ async def report_route(
 async def tts_route(
     text: str = Query(min_length=1, max_length=600),
     speed: float = Query(default=1.0, ge=0.5, le=1.5),
+    persona: str = Query(default="aylin", max_length=40),
+    voice: str | None = Query(default=None, max_length=64),
+    rate: str | None = Query(default=None, max_length=16),
+    pitch: str | None = Query(default=None, max_length=16),
 ):
-    """Matnni Microsoft Emel Neural (tr-TR) ovozi bilan mp3 qilib qaytaradi.
+    """Matnni tanlangan personaj ovozida mp3 qilib qaytaradi.
 
-    Ovoz qat'iy `tr-TR-EmelNeural`; balandlik 1.0. Tezlik 0.5–1.5 (UI: 0.8/1.0/1.2).
-    Bepul, kalitsiz.
+    Personaj profili voice, rate va pitch beradi; frontend ularni yuborishi mumkin.
+    Tezlik 0.5–1.5, personaj rate qiymatiga qo'shiladi. Bepul, kalitsiz.
     """
+    profile = get_persona(persona)
     try:
-        audio = await synth(text, speed)
+        audio = await synth(
+            text,
+            speed,
+            voice or profile["voice"],
+            rate or profile["rate"],
+            pitch or profile["pitch"],
+        )
     except Exception as exc:
         logging.exception("TTS xatosi")
         raise HTTPException(status_code=502, detail=f"Ovoz yaratish xato qildi: {exc}")

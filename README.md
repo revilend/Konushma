@@ -22,12 +22,12 @@ Foydalanuvchi **mikrofonda turkcha gapiradi** → Aylin Hoca (AI) eshitadi → n
    ├─ /api/analyze   → Gemini (asosiy) yoki OpenAI mos API (zaxira)
    │                    qat'iy JSON: transcription + level_score + mistakes +
    │                    model_answer_tr + next_question_tr + positive_note_uz
-   ├─ /api/tts       → Microsoft Emel Neural · tr-TR (100% bepul, tabiiy ayol ovoz)
+   ├─ /api/tts       → personajga mos Neural ovoz: Emel (ayol) / Ahmet (erkak)
    └─ /api/config    → AI kaliti sozlanganmi (setup tekshiruvi)
 ```
 
 - STT: brauzerning **Web Speech SpeechRecognition** API (lang `tr-TR`, bu Chrome va Edge'da ishlaydi). Ishlamasa — qo'lda matn kiriting.
-- TTS: Python `edge-tts` → `tr-TR-EmelNeural` (bepul, natural). Ovoz qat'iy Emel; tezlik **0.8x / 1.0x / 1.2x** (UI’dan sozlanadi), balandlik **1.0** (`+0Hz`). Hech qanday API kalit yoki to'lov kerak emas.
+- TTS: Python `edge-tts` → **Aylin uchun Emel**, **Mehmet va Emre uchun Ahmet** Neural ovozi. Har bir personaj o‘z `voice`, `rate` va `pitch` profili bilan gapiradi. Tezlik **0.8x / 1.0x / 1.2x** (UI’dan sozlanadi). Hech qanday API kalit yoki to'lov kerak emas.
 - AI tahlil: Google **Gemini** (`gemini-2.5-flash`) qat'iy JSON-sxemasi bilan instruksiyasi — [backend/app/services/instruction.py](backend/app/services/instruction.py). Zaxira variant: OpenAI-mos kalit (`OPENAI_API_KEY`).
 - Kalitlama frontend yoki brauzerga YUKLANMAYDI — ular faqat backenddagi `.env` faylida.
 
@@ -79,12 +79,12 @@ Asosiy sahifadagi chap yuqoridagi "Jonli Qo'ng'iroq" tugmasi orqali ochiladi:
 
 - "Qo'ng'iroqni boshlash" bosilgach mikrofon uzluksiz tinglaydi (Web Speech API, tr-TR).
 - **Sukunat deteksiyasi**: gapirib bo'lib 1.5 soniya jim tursa, javob avtomatik `/api/analyze`ga yuboriladi (`mode: "call"`).
-- Aylin Hocaning javobi **tr-TR-EmelNeural** ovozi bilan o'qiladi (brauzer SpeechSynthesis ishlatilmaydi — Google robot ovozi butunlay o'chirilgan).
+- Tanlangan personajning javobi uning Neural ovozi bilan o'qiladi: Aylin — Emel, Mehmet — Ahmet (+10%, -20Hz), Emre — Ahmet (-5%, +0Hz). Server ovozi ishlamasa, brauzer fallback mos ayol/erkak ovozini tanlaydi.
 - Aylin gapirayotganda mikrofon to'liq o'chiriladi; gapirib bitgach avtomatik qayta ochiladi.
 - Har javobda xato kartochkalari: ❌ xato, 💡 o'zbekcha qoida, ✅ to'g'risi.
 - "Qo'ng'iroqni tugatish" barcha resurslarni tozlaydi.
 
-Texnik: sukunat analizi `AnalyserNode` RMS (chegara 8/255) bilan; TTS ijro paytida mic bloklanadi (echo oldini olish uchun). TTS: ovoz va balandlik qat'iy (`tr-TR-EmelNeural`, `+0Hz`); tezlik `speed=0.8|1.0|1.2` parametri bilan boshqariladi. Brauzer `speechSynthesis` umuman ishlatilmaydi.
+Texnik: sukunat analizi `AnalyserNode` RMS (chegara 8/255) bilan; TTS ijro paytida mic bloklanadi (echo oldini olish uchun). TTS personaj profili `voice`, `rate` va `pitch` parametrlari bilan yuboriladi; tezlik `speed=0.8|1.0|1.2` personaj rate qiymatiga qo'shiladi. Server ovozi yuklanmasa, brauzer `speechSynthesis` fallback ishlaydi va jinsga mos turkcha ovoz tanlaydi.
 
 ## 📡 API endpoints
 
@@ -139,7 +139,7 @@ Swagger: <http://localhost:8000/docs>
 │           ├── instruction.py     # Aylin Hoca — imtihonchi instruksiyasi
 │           ├── questions.py       # Suhbat savollari bazasi
 │           ├── analysis.py        # Gemini + OpenAI zaxira yo'nalish
-│           └── tts_service.py     # edge-tts (tr-TR-EmelNeural)
+│           └── tts_service.py     # edge-tts (personaj Neural ovozi)
 └── frontend/
     ├── index.html · vite.config.js
     └── src/
@@ -220,7 +220,7 @@ Services konfiguratsiyasi:
 
 Eslatmalar:
 
-- TTS (`edge-tts` → `tr-TR-EmelNeural`) Vercel'da ham bepul ishlaydi; API kalit talab qilmaydi.
+- TTS (`edge-tts` → personajga mos Emel/Ahmet Neural) Vercel'da ham bepul ishlaydi; API kalit talab qilmaydi.
 - Birinchi so'rov "cold start" tufayli 1–3 soniya sekinroq bo'lishi mumkin.
 - Hobby tarifi shaxsiy/demo loyihalar uchun; homiy reklama bilan tijoriy foydalanish uchun Pro kerak.
 - Agar Microsoft tomonidan `edge-tts` WebSocket'i bloklansa, backendni Render'ga ko'chirish mumkin —

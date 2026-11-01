@@ -62,7 +62,11 @@ export default function CallScreen({
   const creditRef = useRef(() => {});
 
   const selected = scenarios.find((s) => s.id === scenarioId) || null;
-  const selectedPersona = getPersona(personaId);
+  const selectedPersona = personas.find((persona) => persona.id === personaId) || getPersona(personaId);
+  const speakAsPersona = useCallback(
+    (text) => playTTS?.(text, selectedPersona),
+    [playTTS, selectedPersona]
+  );
 
   useEffect(() => {
     onStageChange?.(stage);
@@ -141,16 +145,16 @@ export default function CallScreen({
     async (text) => {
       const turn = await onTurn(text);
       const speech = turn ? [turn.reply, turn.aylin].filter(Boolean).join(" ") : "";
-      if (speech && playTTS) {
+      if (speech && speakAsPersona) {
         callRef.current?.aiSpeakingChanged(true);
         try {
-          await playTTS(speech);
+          await speakAsPersona(speech);
         } finally {
           callRef.current?.aiSpeakingChanged(false);
         }
       }
     },
-    [onTurn, playTTS]
+    [onTurn, speakAsPersona]
   );
 
   const call = useCall({ onTurn: onTurnWithSpeech });
@@ -186,9 +190,9 @@ export default function CallScreen({
     secondsRef.current = 0;
     creditedRef.current = false;
     try {
-      if (playTTS) {
+      if (speakAsPersona) {
         callRef.current?.aiSpeakingChanged(true);
-        await playTTS(selected.opening_tr);
+        await speakAsPersona(selected.opening_tr);
         if (sessionRef.current !== token) return;
         callRef.current?.aiSpeakingChanged(false);
       }
@@ -290,7 +294,7 @@ export default function CallScreen({
         onRestart={restart}
         onExit={leave}
         onVocab={onVocab}
-        playTTS={playTTS}
+        playTTS={speakAsPersona}
         vocab={vocab}
       />
     );
@@ -368,7 +372,7 @@ export default function CallScreen({
           speaking={isSpeaking}
           className="mt-5 max-w-2xl"
           vocab={vocab}
-          playTTS={playTTS}
+          playTTS={speakAsPersona}
         />
 
         <div className="wave-shell mt-2 h-10 w-full max-w-md opacity-80">
@@ -403,7 +407,7 @@ export default function CallScreen({
 
         <div className="mt-2 flex items-center gap-2 text-[10px] text-zinc-600">
           <Icon name="volume" size={12} />
-          <span>Emel Neural · tr-TR</span>
+          <span>{selectedPersona.voice_label || "Neural"} · tr-TR</span>
         </div>
       </div>
 
@@ -422,7 +426,7 @@ export default function CallScreen({
 
           <div className="mt-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-3">
             <p className="text-[13px] font-medium leading-relaxed text-zinc-100">
-              <ClickableText text={currentTr} context={currentUz} vocab={vocab} playTTS={playTTS} />
+              <ClickableText text={currentTr} context={currentUz} vocab={vocab} playTTS={speakAsPersona} />
             </p>
             <p className="mt-1 text-[12px] leading-relaxed text-zinc-500">{currentUz || "Tarjima tayyorlanmoqda"}</p>
           </div>
@@ -436,7 +440,7 @@ export default function CallScreen({
                 natural={latest.reply}
                 keyWords={latest.keyWords || []}
                 vocab={vocab}
-                playTTS={playTTS}
+                playTTS={speakAsPersona}
                 compact
               />
             </div>
@@ -458,13 +462,13 @@ export default function CallScreen({
                 >
                   <div className="min-w-0 flex-1 text-left">
                     <p className="text-[12px] font-medium leading-snug text-zinc-200">
-                      <ClickableText text={hint.tr} context={hint.uz} vocab={vocab} playTTS={playTTS} />
+                      <ClickableText text={hint.tr} context={hint.uz} vocab={vocab} playTTS={speakAsPersona} />
                     </p>
                     <p className="mt-0.5 text-[10px] leading-snug text-zinc-500">{hint.uz}</p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => playTTS?.(hint.tr)}
+                    onClick={() => speakAsPersona?.(hint.tr)}
                     className="rounded-md p-1.5 text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-200"
                     aria-label="Tinglash"
                   >

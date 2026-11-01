@@ -1,3 +1,5 @@
+import { getPersona } from "./personas";
+
 const BASE = import.meta.env.VITE_API_URL || ""; // bo'sh -> same-origin (vite proxy)
 
 export const API_KEY_STORAGE = "tp-gemini-key";
@@ -73,8 +75,18 @@ export const api = {
       body: JSON.stringify(payload),
     }).then(handle),
 
-  // Matnli javobni mp3 ovozga aylantiradi — faqat Microsoft Emel Neural (tr-TR).
-  // speed: 0.8 | 1.0 | 1.2 (balandlik doim 1.0). Bepul xizmat, API kalit talab qilmaydi.
-  ttsUrl: (text, speed = 1) =>
-    `${BASE}/api/tts?${new URLSearchParams({ text, speed: String(speed) }).toString()}`,
+  // Matnni tanlangan personaj ovoziga aylantiradi. Persona profili voice/rate/pitch yuboradi.
+  // speed: 0.8 | 1.0 | 1.2. Bepul xizmat, API kalit talab qilmaydi.
+  ttsUrl: (text, persona = "aylin", speed = 1) => {
+    const profile = typeof persona === "string" ? getPersona(persona) : persona || getPersona("aylin");
+    const params = new URLSearchParams({
+      text,
+      speed: String(speed),
+      persona: profile.id || "aylin",
+      voice: profile.voice || getPersona("aylin").voice,
+      rate: profile.rate || "+0%",
+      pitch: profile.pitch || "+0Hz",
+    });
+    return `${BASE}/api/tts?${params.toString()}`;
+  },
 };
